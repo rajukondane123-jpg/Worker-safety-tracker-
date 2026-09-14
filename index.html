@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#050505">
+    <title>Worker Monitoring | Tactical Command</title>
+    
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+    <!-- UNIFIED STYLESHEET (Holographic Obsidian) -->
+    <style>
+        :root {
+            var(--bg-base): #050505; var(--brand-primary): #00e5ff;
+            var(--accent-success): #00ffa3; var(--accent-warning): #ffcc00;
+            var(--accent-danger): #ff004c; var(--font-mono): 'JetBrains Mono', monospace;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #fff; overflow-x: hidden; }
+
+        /* Background Grid */
+        body::before {
+            content: ''; position: fixed; top: 0; left: -50%; width: 200%; height: 200%;
+            background-image: linear-gradient(rgba(0, 229, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+            background-size: 60px 60px; z-index: -2;
+            transform: perspective(600px) rotateX(30deg) translateY(-100px) translateZ(-250px);
+            animation: gridHyperMove 15s linear infinite;
+        }
+        @keyframes gridHyperMove { 0% { background-position: 0 0; } 100% { background-position: 60px 60px; } }
+
+        /* Header */
+        .app-header { padding: 15px 4%; display: flex; justify-content: space-between; align-items: center; background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(24px); border-bottom: 1px solid rgba(0, 229, 255, 0.15); position: sticky; top: 0; z-index: 100; }
+        .brand h1 { font-family: var(--font-mono); font-size: 1.4rem; color: #fff; }
+        .status-hud { display: flex; gap: 20px; background: rgba(0,0,0,0.8); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 25px; border-radius: 8px; }
+        .hud-item { display: flex; flex-direction: column; }
+        .hud-label { font-size: 0.55rem; color: #828a9a; text-transform: uppercase; font-family: var(--font-mono); }
+        .hud-value { font-size: 1.1rem; font-weight: 800; font-family: var(--font-mono); color: var(--brand-primary); }
+
+        /* Panels */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 30px; padding: 35px 4%; max-width: 2000px; margin: 0 auto 100px auto; }
+        .panel { background: linear-gradient(135deg, rgba(20, 22, 28, 0.8), rgba(10, 11, 14, 0.9)); border-radius: 16px; padding: 28px; border: 1px solid rgba(0,229,255,0.2); box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
+        .panel-large { grid-column: span 2; }
+        .panel-hero { grid-column: 1 / -1; min-height: 700px; }
+        .panel-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;}
+        .panel h2 { font-size: 1.05rem; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Inputs & Buttons */
+        .input-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.65rem; color: #828a9a; margin-bottom: 8px; text-transform: uppercase; font-family: var(--font-mono); }
+        input { width: 100%; background: #07080a; color: #fff; padding: 15px; border: 1px solid rgba(255,255,255,0.1); border-left: 2px solid #828a9a; border-radius: 8px; font-family: var(--font-mono); }
+        .btn { padding: 15px 24px; border-radius: 8px; font-weight: 800; font-family: var(--font-mono); text-transform: uppercase; cursor: pointer; border: none; width: 100%; margin-bottom: 10px; transition: transform 0.1s;}
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: rgba(0, 229, 255, 0.1); color: var(--brand-primary); border: 1px solid rgba(0,229,255,0.4); }
+        .btn-submit { background: #fff; color: #000; }
+        .btn-sensor { background: rgba(0, 255, 163, 0.1); color: var(--accent-success); border: 1px solid rgba(0,255,163,0.4); }
+
+        /* Map & Graph */
+        .map-container-hero, .svg-container-hero { width: 100%; height: 600px; background: #020305; border-radius: 8px; border: 1px solid rgba(0,229,255,0.1); position: relative;}
+        #map, #graphSvg { width: 100%; height: 100%; }
+        
+        /* Roster */
+        .roster-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+        .roster-item { background: #07080a; border: 1px solid rgba(255,255,255,0.05); padding: 18px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .roster-info strong { display: block; font-size: 1.1rem; color: #fff; }
+        .roster-status { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 900; }
+
+        /* FAB */
+        .fab-container { position: fixed; bottom: 45px; right: 45px; z-index: 500; }
+        .fab-sos { background: #ff004c; color: #fff; padding: 20px 40px; border-radius: 99px; font-weight: 900; border: none; font-family: var(--font-mono); font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 30px rgba(255,0,76,0.6); }
+
+        /* ============================================================== */
+        /* BULLETPROOF MAN DOWN MODAL STYLES                              */
+        /* ============================================================== */
+        .man-down-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 0, 76, 0.95);
+            z-index: 999999; /* Absolute max priority */
+            display: none; /* Hidden by default */
+            align-items: center; justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* We use a specific class to trigger flex layout via JS safely */
+        .man-down-modal.is-active { display: flex; }
+
+        .md-content {
+            background: #000; padding: 50px 40px; border-radius: 16px; text-align: center;
+            border: 2px solid #ff004c; box-shadow: 0 0 60px rgba(255,0,76,0.8);
+            width: 90%; max-width: 450px;
+        }
+
+        .md-content h2 { color: #fff; font-size: 26px; margin-bottom: 15px; font-family: var(--font-mono); }
+        .md-content p { color: #ccc; font-size: 16px; margin-bottom: 25px; line-height: 1.5; }
+        .md-countdown { font-size: 100px; color: #ff004c; font-family: var(--font-mono); font-weight: 900; margin: 30px 0; line-height: 1; text-shadow: 0 0 30px rgba(255,0,76,0.5); }
+        
+        .md-cancel-btn {
+            background: #00e5ff; color: #000; width: 100%; padding: 25px;
+            font-size: 1.3rem; font-weight: 900; font-family: var(--font-mono);
+            border: none; border-radius: 8px; cursor: pointer;
+            box-shadow: 0 0 30px rgba(0,229,255,0.5);
+        }
+        .md-cancel-btn:active { background: #fff; }
+
+        @media (max-width: 768px) {
+            .app-header { flex-direction: column; align-items: flex-start; }
+            .panel-hero { min-height: 500px; }
+            .map-container-hero, .svg-container-hero { height: 500px; }
+            .fab-container { bottom: 20px; right: 20px; left: 20px; }
+            .fab-sos { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="brand"><h1>WORKER MONITORING</h1></div>
+        <div class="status-hud">
+            <div class="hud-item"><span class="hud-label">Clearance</span><strong id="statRole" class="hud-value">AWAITING</strong></div>
+            <div class="hud-item"><span class="hud-label">Tracked</span><strong id="statActive" class="hud-value">0</strong></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-grid">
+        <!-- Connect -->
+        <section class="panel">
+            <div class="panel-header"><h2>01 Command Link</h2></div>
+            <input type="text" id="groupCodeInput" placeholder="Site Code (e.g. TEAM123)">
+            <div style="display:flex; gap:10px;">
+                <button id="createGroupBtn" class="btn btn-primary">Create</button>
+                <button id="joinGroupActionBtn" class="btn btn-primary">Join</button>
+            </div>
+        </section>
+
+        <!-- Identity -->
+        <section class="panel">
+            <div class="panel-header"><h2>02 Node Injection</h2></div>
+            <input type="text" id="nameInput" placeholder="Operator Name">
+            <input type="text" id="designationInput" placeholder="Role">
+            <button id="captureBtn" class="btn btn-sensor">📍 Auto-Fetch GPS</button>
+            <div id="gpsReadout" style="color:var(--brand-primary); margin-bottom:15px;" hidden></div>
+            <button id="addBtn" class="btn btn-submit" disabled>+ Inject into Grid</button>
+        </section>
+
+        <!-- Personnel -->
+        <section class="panel panel-large">
+            <div class="panel-header"><h2>03 Active Personnel</h2></div>
+            <ul id="rosterList" class="roster-list"></ul>
+        </section>
+
+        <!-- Configuration -->
+        <section class="panel panel-large">
+            <div class="panel-header"><h2>04 Calibration</h2></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <div class="input-group">
+                    <label>Man-Down Timer (Mins)</label>
+                    <input type="number" id="manDownInput" step="0.1" value="3">
+                </div>
+                <div class="input-group">
+                    <label>Geofence Radius (m)</label>
+                    <input type="number" id="geofenceRadiusInput" value="500">
+                </div>
+                <div class="input-group">
+                    <label>Kinematic Drop Limit (m)</label>
+                    <input type="number" id="dropInput" value="1.5">
+                </div>
+            </div>
+        </section>
+
+        <!-- Maps -->
+        <section class="panel panel-hero">
+            <div class="panel-header"><h2>05 Topography</h2></div>
+            <div class="map-container-hero"><div id="map"></div></div>
+        </section>
+
+        <section class="panel panel-hero">
+            <div class="panel-header"><h2>06 Spatial Elevation</h2></div>
+            <div class="svg-container-hero"><svg id="graphSvg"></svg></div>
+        </section>
+    </main>
+
+    <!-- FAB -->
+    <div class="fab-container"><button id="sosTriggerBtn" class="fab-sos">🚨 SOS</button></div>
+
+    <!-- ============================================================== -->
+    <!-- BULLETPROOF MAN DOWN MODAL                                     -->
+    <!-- ============================================================== -->
+    <div id="manDownModal" class="man-down-modal">
+        <div class="md-content">
+            <h2>⚠️ INACTIVITY DETECTED</h2>
+            <p>System detects zero movement. Site-wide Man-Down SOS Alert triggering in:</p>
+            <div id="mdCountdown" class="md-countdown">30</div>
+            <!-- HARDWIRED ONCLICK FUNCTION TO GUARANTEE EXECUTION -->
+            <button class="md-cancel-btn" onclick="window.cancelManDownSafely()">I AM OKAY</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CRASH-PROOF JAVASCRIPT ENGINE              -->
+    <!-- ========================================== -->
+    <script>
+        // GLOBAL STATE
+        window.STATE = {
+            role: "worker", groupCode: null, mySelfId: null, liveTrackingId: null,
+            group: [], mapInstance: null, mapMarkers: {}, geofenceCircle: null,
+            lastMoveTime: Date.now(), lastMoveLat: null, lastMoveLon: null,
+            mdCheckInterval: null, mdCountdownInterval: null, mdActive: false,
+            kinematicHistory: []
+        };
+
+        // GLOBAL HARDWIRED FUNCTION FOR THE CANCEL BUTTON
+        window.cancelManDownSafely = function() {
+            console.log("USER PRESSED CANCEL!");
+            
+            // 1. Immediately Stop the Countdown
+            if(window.STATE.mdCountdownInterval) clearInterval(window.STATE.mdCountdownInterval);
+            
+            // 2. Hide the UI safely
+            const modal = document.getElementById('manDownModal');
+            if (modal) modal.classList.remove('is-active');
+            
+            // 3. Reset State Timers
+            window.STATE.mdActive = false;
+            window.STATE.lastMoveTime = Date.now(); 
+            
+            // 4. Force Kill Audio
+            try { window.AudioEngine.stop(); } catch(e) {}
+        };
+
+        (function () {
+            "use strict";
+
+            // 1. AUDIO ENGINE (With Try/Catch Safeties)
+            window.AudioEngine = {
+                ctx: null, nodes: [],
+                init: function() { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} },
+                trigger: function(isManDown) {
+                    try {
+                        if (!this.ctx) this.init();
+                        if (!this.ctx) return; // Exit safely if browser flat-out refuses
+                        if (this.ctx.state === 'suspended') this.ctx.resume().catch(e=>{});
+                        if (navigator.vibrate) navigator.vibrate([500,200,500]);
+                        
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = "sawtooth";
+                        osc.frequency.value = isManDown ? 440 : 880;
+                        gain.gain.value = 0.5;
+                        osc.connect(gain).connect(this.ctx.destination);
+                        osc.start(); osc.stop(this.ctx.currentTime + 1.5);
+                        this.nodes.push(osc);
+                    } catch (err) {
+                        console.warn("Audio suppressed by browser, continuing logic...", err);
+                    }
+                },
+                stop: function() {
+                    try {
+                        this.nodes.forEach(n => { n.stop(); n.disconnect(); });
+                        this.nodes = [];
+                    } catch(e){}
+                }
+            };
+            // Try to unlock audio early
+            document.body.addEventListener('click', () => window.AudioEngine.init(), {once:true});
+
+            // 2. SOCKET & DOM BINDINGS
+            let socket = { on: ()=>{}, emit: ()=>{} };
+            try { if(typeof io !== 'undefined') socket = io(); } catch(e){}
+
+            const getDOM = (id) => document.getElementById(id);
+            const bindClick = (id, fn) => { const el = getDOM(id); if(el) el.onclick = fn; };
+
+            // 3. CORE LOGIC
+            bindClick('createGroupBtn', () => {
+                const code = getDOM('groupCodeInput').value;
+                if(code) { socket.emit('createGroup', code); STATE.groupCode = code; STATE.role = "admin"; renderUI(); }
+            });
+
+            bindClick('joinGroupActionBtn', () => {
+                const code = getDOM('groupCodeInput').value;
+                if(code) { socket.emit('joinGroup', code); STATE.groupCode = code; STATE.role = "worker"; renderUI(); }
+            });
+
+            bindClick('captureBtn', () => {
+                const btn = getDOM('captureBtn'); const out = getDOM('gpsReadout');
+                btn.innerText = "Acquiring...";
+                navigator.geolocation.getCurrentPosition(pos => {
+                    btn.innerText = "📍 Lock Acquired!"; out.hidden = false; out.innerText = `Lat: ${pos.coords.latitude.toFixed(4)}, Lon: ${pos.coords.longitude.toFixed(4)}`;
+                    getDOM('addBtn').disabled = false;
+                }, err => { alert("GPS Error: " + err.message); }, {enableHighAccuracy: true});
+            });
+
+            bindClick('addBtn', () => {
+                if(!STATE.groupCode) return alert("Join a group first!");
+                STATE.mySelfId = "OP-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+                startTracking();
+                alert("Successfully Injected!");
+            });
+
+            bindClick('sosTriggerBtn', () => {
+                if(!STATE.mySelfId) return alert("Inject into grid first.");
+                const me = STATE.group.find(p => p.id === STATE.mySelfId);
+                socket.emit('triggerSOS', { name: me ? me.name : "Operator", lat: me?.lat, lon: me?.lon, isManDown: false });
+                window.AudioEngine.trigger(false);
+            });
+
+            // 4. THE MAN-DOWN SYSTEM
+            function startTracking() {
+                if(STATE.mdCheckInterval) clearInterval(STATE.mdCheckInterval);
+                STATE.lastMoveTime = Date.now();
+
+                // 4A: GPS Watcher
+                navigator.geolocation.watchPosition(pos => {
+                    const lat = pos.coords.latitude; const lon = pos.coords.longitude;
+                    
+                    // Check if moved more than micro-jitter
+                    if (STATE.lastMoveLat) {
+                        const dist = calculateDistance(STATE.lastMoveLat, STATE.lastMoveLon, lat, lon);
+                        if (dist > 3) { // Moved > 3 meters
+                            STATE.lastMoveTime = Date.now();
+                            STATE.lastMoveLat = lat; STATE.lastMoveLon = lon;
+                        }
+                    } else {
+                        STATE.lastMoveLat = lat; STATE.lastMoveLon = lon;
+                    }
+
+                    // Update Roster
+                    const name = getDOM('nameInput').value || "Operator";
+                    const des = getDOM('designationInput').value || "Role";
+                    const me = { id: STATE.mySelfId, name: name, designation: des, lat: lat, lon: lon, height: pos.coords.altitude || 0 };
+                    
+                    const existing = STATE.group.findIndex(p => p.id === STATE.mySelfId);
+                    if(existing > -1) STATE.group[existing] = me; else STATE.group.push(me);
+                    
+                    socket.emit('updateGroupData', STATE.group);
+                    renderUI();
+                }, err => console.warn(err), {enableHighAccuracy: true});
+
+                // 4B: The Inactivity Checker
+                STATE.mdCheckInterval = setInterval(() => {
+                    if (STATE.mdActive) return;
+                    const mins = parseFloat(getDOM('manDownInput').value) || 3;
+                    const limitMs = mins * 60 * 1000;
+                    
+                    if (Date.now() - STATE.lastMoveTime > limitMs) {
+                        triggerManDownWarning();
+                    }
+                }, 5000); // Check every 5 seconds
+            }
+
+            // 4C: The Modal Trigger
+            function triggerManDownWarning() {
+                if (STATE.mdActive) return;
+                STATE.mdActive = true;
+                
+                console.log("Triggering Man Down Countdown!");
+                
+                const modal = getDOM('manDownModal');
+                const countEl = getDOM('mdCountdown');
+                
+                // Show modal safely
+                if(modal) modal.classList.add('is-active');
+                
+                // Try playing audio, ignore if crashes
+                window.AudioEngine.trigger(true);
+                
+                let timeLeft = 30;
+                if(countEl) countEl.innerText = timeLeft;
+                
+                if(STATE.mdCountdownInterval) clearInterval(STATE.mdCountdownInterval);
+                
+                STATE.mdCountdownInterval = setInterval(() => {
+                    timeLeft--;
+                    if(countEl) countEl.innerText = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(STATE.mdCountdownInterval);
+                        if(modal) modal.classList.remove('is-active');
+                        window.AudioEngine.stop();
+                        
+                        const me = STATE.group.find(p => p.id === STATE.mySelfId);
+                        if(me) {
+                            alert("🚨 MAN-DOWN SOS TRIGGERED GLOBALLY!");
+                            socket.emit('triggerSOS', { name: me.name, lat: me.lat, lon: me.lon, isManDown: true });
+                        }
+                    }
+                }, 1000);
+            }
+
+            // 5. UTILS & RENDER (Simplified for stability)
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371e3; const p1 = lat1 * Math.PI/180; const p2 = lat2 * Math.PI/180;
+                const a = Math.sin((p2-p1)/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(((lon2-lon1)*Math.PI/180)/2)**2;
+                return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+            }
+
+            function renderUI() {
+                const rList = getDOM('rosterList');
+                if(rList) {
+                    rList.innerHTML = STATE.group.map(p => `
+                        <li class="roster-item">
+                            <div class="roster-info"><strong>${p.name}</strong><span>${p.designation}</span></div>
+                            <div class="roster-status">${p.height.toFixed(1)}m</div>
+                        </li>
+                    `).join('');
+                }
+                
+                getDOM('statRole').innerText = STATE.role.toUpperCase();
+                getDOM('statActive').innerText = STATE.group.length;
+
+                // Render Map
+                if(typeof L !== 'undefined' && getDOM('map')) {
+                    if(!STATE.mapInstance) {
+                        STATE.mapInstance = L.map('map').setView([20, 78], 4);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(STATE.mapInstance);
+                    }
+                    STATE.group.forEach(p => {
+                        if(p.lat && p.lon) {
+                            if(STATE.mapMarkers[p.id]) STATE.mapMarkers[p.id].setLatLng([p.lat, p.lon]);
+                            else STATE.mapMarkers[p.id] = L.marker([p.lat, p.lon]).addTo(STATE.mapInstance).bindPopup(p.name);
+                        }
+                    });
+                }
+            }
+
+            // Socket listeners
+            socket.on('syncGroup', grp => { STATE.group = grp; renderUI(); });
+            socket.on('receiveSOS', data => { alert(`🚨 SOS FROM: ${data.name}`); window.AudioEngine.trigger(data.isManDown); });
+
+        })();
+    </script>
+</body>
+</html>
