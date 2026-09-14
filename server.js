@@ -97,7 +97,9 @@ io.on('connection', (socket) => {
   socket.on('triggerSOS', (payload) => { 
     if (currentGroup) {
       io.to(currentGroup).emit('receiveSOS', payload);
-      sendNtfyServerSide(groupNtfyTopics[currentGroup], `🚨 SOS: ${payload.name}`, `${payload.name} triggered SOS panic protocol!`, "sos,rotating_light", payload.lat ? `https://www.google.com/maps?q=${payload.lat},${payload.lon}` : null);
+      const title = payload.isManDown ? `🚨 MAN-DOWN: ${payload.name}` : `🚨 SOS: ${payload.name}`;
+      const msg = payload.isManDown ? `${payload.name} is unresponsive/incapacitated!` : `${payload.name} triggered SOS panic protocol!`;
+      sendNtfyServerSide(groupNtfyTopics[currentGroup], title, msg, "sos,rotating_light", payload.lat ? `https://www.google.com/maps?q=${payload.lat},${payload.lon}` : null);
     }
   });
 });
