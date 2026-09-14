@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#030712">
+    <title>Worker Monitoring | Tactical Command</title>
+    
+    <!-- External Libraries (Leaflet & Socket.io) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+    <!-- ========================================== -->
+    <!-- UNIFIED STYLESHEET (HOLOGRAPHIC OBSIDIAN)  -->
+    <!-- ========================================== -->
+    <style>
+        :root {
+            /* Deep Space Palette */
+            --bg-base: #030712;
+            --bg-panel: rgba(15, 23, 42, 0.65);
+            --bg-panel-solid: #0f172a;
+            --bg-panel-hover: rgba(30, 41, 59, 0.85);
+            
+            /* Hyper-Neon Accents */
+            --brand-primary: #00e5ff;
+            --brand-secondary: #8b5cf6;
+            --brand-glow: rgba(0, 229, 255, 0.6);
+            
+            /* Status Indicators */
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --accent-danger-glow: rgba(239, 68, 68, 0.8);
+
+            /* Typography */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+
+            /* Fonts */
+            --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* Metrics */
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-pill: 9999px;
+            
+            /* Z-Index Strata */
+            --z-map: 10;
+            --z-header: 100;
+            --z-fab: 500;
+            --z-overlay: 900;
+            --z-toast: 9999;
+            --z-modal: 10000;
+        }
+
+        /* --- CSS RESET & HARDWARE ACCELERATION --- */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html, body {
+            width: 100%; min-height: 100vh;
+            background-color: var(--bg-base); 
+            color: var(--text-main);
+            font-family: var(--font-ui); line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- AMBIENT BACKGROUNDS --- */
+        body::before {
+            content: ''; position: fixed; top: 0; left: -50%; width: 200%; height: 200%;
+            background-image: 
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px; z-index: -2;
+            transform: perspective(1000px) rotateX(45deg) translateY(-100px) translateZ(-250px);
+            animation: gridHyperMove 20s linear infinite;
+            will-change: transform;
+        }
+
+        .ambient-glow-core {
+            position: fixed; top: -20%; left: 10%; width: 80vw; height: 80vw;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.08), transparent 60%);
+            border-radius: 50%; filter: blur(100px); z-index: -1; pointer-events: none;
+            animation: pulseCore 15s infinite alternate ease-in-out;
+            will-change: transform, opacity;
+        }
+
+        .crt-scanlines {
+            position: fixed; inset: 0;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 1px, transparent 1px, transparent 2px);
+            z-index: var(--z-overlay); pointer-events: none; opacity: 0.6;
+        }
+
+        /* --- SCROLLBARS --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: var(--brand-secondary); border-radius: var(--radius-pill); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--brand-primary); box-shadow: 0 0 15px var(--brand-glow);}
+
+        /* --- TACTICAL HEADER --- */
+        .app-header {
+            position: sticky; top: 0; z-index: var(--z-header);
+            background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+            padding: 16px 5%; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), inset 0 -1px 10px rgba(0,229,255,0.05);
+        }
+
+        .brand h1 { 
+            font-family: var(--font-mono); font-size: 1.5rem; font-weight: 900;
+            color: #fff; letter-spacing: 2px; text-transform: uppercase;
+            display: flex; align-items: center; gap: 15px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+        .version-tag {
+            font-size: 0.65rem; color: var(--bg-base); font-weight: 900;
+            background: var(--brand-primary); padding: 4px 10px; border-radius: 4px;
+            box-shadow: 0 0 15px var(--brand-glow); letter-spacing: 1.5px;
+        }
+        .brand p { font-size: 0.7rem; color: var(--brand-primary); text-transform: uppercase; letter-spacing: 4px; margin-top: 6px; opacity: 0.8;}
+
+        .status-hud { 
+            display: flex; gap: 24px; background: rgba(0,0,0,0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.05); padding: 10px 30px; 
+            border-radius: var(--radius-sm); box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+        .hud-item { display: flex; flex-direction: column; position: relative; padding-right: 24px;}
+        .hud-item:not(:last-child)::after {
+            content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 1px; background: rgba(255,255,255,0.1);
+        }
+        .hud-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 2px;}
+        .hud-value { font-size: 1.15rem; font-weight: 800; font-family: var(--font-mono); margin-top: 4px;}
+        .hud-value.highlight { color: var(--brand-primary); text-shadow: 0 0 15px var(--brand-glow); }
+        .status-secure { color: var(--accent-success); text-shadow: 0 0 15px var(--accent-success); }
+        .status-danger { color: var(--accent-danger); text-shadow: 0 0 15px var(--accent-danger); }
+
+        /* --- DASHBOARD GRID --- */
+        .dashboard-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 30px; 
+            padding: 40px 5%; max-width: 2400px; margin: 0 auto 100px auto; 
+        }
+
+        /* --- GLASSMORPHISM PANELS --- */
+        .panel { 
+            position: relative; border-radius: var(--radius-md); padding: 32px; 
+            display: flex; flex-direction: column; z-index: 1;
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.1);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+        }
+
+        .panel::before {
+            content: ''; position: absolute; inset: -1px; border-radius: calc(var(--radius-md) + 1px);
+            background: linear-gradient(45deg, transparent 40%, rgba(0, 229, 255, 0.3), transparent 60%);
+            z-index: -1; transition: opacity 0.4s; opacity: 0; pointer-events: none;
+        }
+        .panel:hover { transform: translateY(-4px); box-shadow: 0 35px 60px -15px rgba(0,0,0,0.9), 0 0 30px rgba(0,229,255,0.05); border-color: rgba(0,229,255,0.2);}
+        .panel:hover::before { opacity: 1; animation: borderRotate 3s linear infinite; }
+
+        .panel-large { grid-column: span 2; }
+        .panel-hero { grid-column: 1 / -1; min-height: 700px; padding: 24px;}
+
+        .panel-header { 
+            display: flex; align-items: center; gap: 16px; margin-bottom: 28px; 
+            padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .step-badge { 
+            background: rgba(0, 229, 255, 0.05); color: var(--brand-primary); 
+            border: 1px solid rgba(0,229,255,0.3); box-shadow: 0 0 20px rgba(0, 229, 255, 0.1);
+            font-family: var(--font-mono); font-size: 0.85rem; font-weight: 900; padding: 6px 12px; border-radius: var(--radius-sm); 
+        }
+        .panel h2 { font-size: 1.15rem; font-weight: 800; color: #fff; letter-spacing: 2px; text-transform: uppercase;}
+
+        /* --- FORMS & INPUTS --- */
+        .input-group { margin-bottom: 24px; }
+        label { display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 1.5px;}
+        input { 
+            width: 100%; background: #030712; 
+            border: 1px solid rgba(255, 255, 255, 0.1); border-left: 3px solid var(--text-muted);
+            color: #fff; padding: 16px 20px; border-radius: var(--radius-sm); 
+            font-family: var(--font-mono); font-size: 1rem; outline: none; transition: all 0.3s;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+        input:focus { 
+            background: rgba(0, 229, 255, 0.03); 
+            border-color: rgba(0, 229, 255, 0.4); border-left-color: var(--brand-primary); 
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.1), inset 0 2px 10px rgba(0,0,0,0.5); 
+        }
+        input:disabled { opacity: 0.4; cursor: not-allowed; border-left-color: var(--accent-danger); }
+
+        .control-row, .flex-row, .button-split { display: flex; gap: 16px; margin-bottom: 16px; }
+        .button-split .btn { flex: 1; }
+        .sensor-controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .coord-split { display: flex; gap: 16px; }
+
+        /* --- HARDWARE ACCELERATED BUTTONS --- */
+        .btn { 
+            position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 12px; 
+            padding: 16px 28px; border-radius: var(--radius-sm); font-weight: 800; font-size: 0.85rem; 
+            cursor: pointer; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 2px;
+            font-family: var(--font-mono); overflow: hidden; transition: all 0.3s ease; z-index: 1;
+            will-change: transform, box-shadow;
+        }
+        .btn::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: -1; transform: skewX(-20deg);
+        }
+        .btn:hover::before { left: 100%; }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; filter: grayscale(100%); }
+
+        .btn-primary { 
+            background: rgba(0, 229, 255, 0.1); color: var(--brand-primary); 
+            border: 1px solid rgba(0, 229, 255, 0.4); box-shadow: inset 0 0 20px rgba(0,229,255,0.1);
+        }
+        .btn-primary:hover { background: var(--brand-primary); color: #000; box-shadow: 0 0 35px var(--brand-glow); }
+
+        .btn-outline { background: transparent; border-color: rgba(255,255,255,0.2); color: var(--text-main); }
+        .btn-outline:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
+
+        .btn-submit { background: #fff; color: #000; width: 100%; }
+        .btn-submit:hover { background: var(--brand-primary); box-shadow: 0 0 35px var(--brand-primary); border-color: var(--brand-primary); }
+
+        .btn-sensor { background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.3); color: var(--accent-success); width: 100%; }
+        .btn-sensor:hover { background: var(--accent-success); color: #000; box-shadow: 0 0 30px rgba(16, 185, 129, 0.5); }
+
+        .btn-text { background: transparent; color: var(--text-muted); padding: 14px; border: 1px dashed rgba(255,255,255,0.15);}
+        .btn-text:hover { color: var(--brand-primary); border-color: var(--brand-primary); background: rgba(0,229,255,0.05);}
+
+        .btn-warning { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.4); color: var(--accent-danger); box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.1); }
+        .btn-warning:hover { background: var(--accent-danger); color: #fff; box-shadow: 0 0 45px var(--accent-danger-glow); }
+
+        .slim { padding: 14px 20px; } .full-width { width: 100%; } .mt-10 { margin-top: 24px; }
+
+        .manual-override, .gps-readout { 
+            background: #030712; padding: 24px; border-radius: var(--radius-sm); margin-bottom: 24px; 
+            border: 1px solid rgba(255, 255, 255, 0.05); font-family: var(--font-mono); font-size: 0.9rem; 
+            animation: slideDown 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); 
+        }
+        .gps-readout { border-left: 3px solid var(--brand-primary); box-shadow: inset 0 0 25px rgba(0,229,255,0.05);}
+
+        /* --- WEATHER MODULE --- */
+        .weather-grid { 
+            display: flex; gap: 40px; align-items: center; background: rgba(0, 0, 0, 0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.03); padding: 32px; border-radius: var(--radius-md); 
+            position: relative; overflow: hidden; box-shadow: inset 0 0 50px rgba(0,0,0,0.6);
+        }
+        .weather-animation-box { 
+            flex: 0 0 160px; height: 160px; display: flex; justify-content: center; align-items: center; 
+            background: rgba(0, 0, 0, 0.8); border-radius: 50%; border: 1px solid rgba(0, 229, 255, 0.15); 
+            box-shadow: inset 0 0 50px rgba(0,229,255,0.05), 0 0 40px rgba(0,0,0,0.9); 
+        }
+        .weather-icon-placeholder { font-size: 0.65rem; color: var(--text-muted); text-align: center; font-family: var(--font-mono); letter-spacing: 2px;}
+        .weather-data-box { flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+        .w-stat { display: flex; flex-direction: column; background: rgba(255,255,255,0.02); padding: 16px 20px; border-radius: var(--radius-sm); border-left: 2px solid rgba(0,229,255,0.2); }
+        .w-stat-wide { grid-column: span 2; border-left-color: var(--brand-primary); background: linear-gradient(90deg, rgba(0,229,255,0.05), transparent);}
+        .w-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-family: var(--font-mono); margin-bottom: 8px; letter-spacing: 2px; }
+        .w-stat strong { font-size: 1.6rem; font-family: var(--font-mono); color: #fff; font-weight: 800;}
+        .condition-text { font-size: 1.8rem !important; color: var(--brand-primary) !important; text-shadow: 0 0 20px var(--brand-glow); }
+
+        .aqi-badge { padding: 4px 14px; border-radius: 6px; display: inline-block; width: max-content; font-size: 1.3rem !important; }
+        .aqi-good { background: rgba(16, 185, 129, 0.1); color: var(--accent-success) !important; border: 1px solid rgba(16,185,129,0.3); }
+        .aqi-mod { background: rgba(245, 158, 11, 0.1); color: var(--accent-warning) !important; border: 1px solid rgba(245,158,11,0.3); }
+        .aqi-poor { background: rgba(239, 68, 68, 0.1); color: var(--accent-danger) !important; border: 1px solid rgba(239,68,68,0.3); }
+
+        /* Weather Visualizer Animations */
+        .anim-sun-cloud-wrapper { position: relative; width: 70px; height: 50px; }
+        .anim-sun-cloud-wrapper .anim-sun { position: absolute; top: -10px; right: -5px; transform: scale(0.5); z-index: 0; }
+        .anim-sun-cloud-wrapper .anim-cloud { position: absolute; bottom: 0; left: 0; z-index: 1; }
+        .anim-sun { width: 50px; height: 50px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 40px #f59e0b; animation: pulseSun 3s infinite alternate; }
+        .anim-cloud { width: 70px; height: 25px; background: #94a3b8; border-radius: 20px; position: relative; animation: floatCloud 5s infinite ease-in-out; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .anim-cloud::before { content: ''; position: absolute; top: -15px; left: 12px; width: 30px; height: 30px; background: #94a3b8; border-radius: 50%; }
+        .anim-cloud::after { content: ''; position: absolute; top: -8px; right: 12px; width: 25px; height: 25px; background: #94a3b8; border-radius: 50%; }
+        .anim-rain::after { content: '///'; position: absolute; bottom: -25px; left: 15px; color: var(--brand-primary); font-family: monospace; font-size: 16px; animation: rainDrop 0.5s infinite linear; text-shadow: 0 0 10px var(--brand-primary); }
+        .anim-snow::after { content: '* * *'; position: absolute; bottom: -25px; left: 10px; color: #fff; font-family: monospace; font-size: 18px; animation: rainDrop 1.5s infinite linear; text-shadow: 0 0 10px #fff; }
+        .anim-lightning { animation: floatCloud 4s infinite ease-in-out, lightningFlash 4s infinite; filter: brightness(0.8); }
+
+        /* --- MAP & SVG MATRICES --- */
+        .map-container-hero, .svg-container-hero { 
+            width: 100%; height: 650px; border-radius: var(--radius-sm); position: relative; overflow: hidden; 
+            background: #000; border: 1px solid rgba(0, 229, 255, 0.1); 
+            box-shadow: inset 0 0 100px rgba(0,0,0,1);
+        }
+        .map-overlay-corners {
+            position: absolute; inset: 0; pointer-events: none; z-index: 1000;
+            box-shadow: inset 0 0 60px rgba(0,0,0,1);
+            background: 
+                linear-gradient(to right, rgba(0,229,255,0.4) 2px, transparent 2px) 0 0,
+                linear-gradient(to bottom, rgba(0,229,255,0.4) 2px, transparent 2px) 0 0,
+                linear-gradient(to left, rgba(0,229,255,0.4) 2px, transparent 2px) 100% 0,
+                linear-gradient(to bottom, rgba(0,229,255,0.4) 2px, transparent 2px) 100% 0,
+                linear-gradient(to right, rgba(0,229,255,0.4) 2px, transparent 2px) 0 100%,
+                linear-gradient(to top, rgba(0,229,255,0.4) 2px, transparent 2px) 0 100%,
+                linear-gradient(to left, rgba(0,229,255,0.4) 2px, transparent 2px) 100% 100%,
+                linear-gradient(to top, rgba(0,229,255,0.4) 2px, transparent 2px) 100% 100%;
+            background-repeat: no-repeat; background-size: 40px 40px;
+        }
+
+        #map { width: 100%; height: 100%; background: #000; }
+        .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(110%) sepia(20%) saturate(150%); } 
+        .leaflet-popup-content-wrapper { background: rgba(3, 7, 18, 0.95) !important; color: #fff !important; border: 1px solid var(--brand-primary); box-shadow: 0 15px 40px rgba(0,0,0,0.9); font-family: var(--font-mono); border-radius: 4px !important;}
+        .leaflet-popup-tip { display: none; }
+        .tactical-marker svg { filter: drop-shadow(0 0 12px var(--brand-primary)); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .tactical-marker:hover svg { transform: scale(1.6); filter: drop-shadow(0 0 25px #fff); }
+        .weather-hud { background: rgba(0, 0, 0, 0.9) !important; padding: 14px 20px !important; border-radius: 4px !important; border-left: 2px solid var(--brand-primary) !important; font-family: var(--font-mono); color: #fff; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px; box-shadow: 0 15px 30px rgba(0,0,0,0.9);}
+
+        /* --- SVG ELEVATION MATRIX --- */
+        .svg-container-hero { 
+            background-image: 
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px; background-position: center bottom;
+        }
+        #graphSvg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.9)); z-index: 10;}
+        .grid-line { stroke: rgba(255, 255, 255, 0.04); stroke-width: 1; }
+        .floor-line { stroke: rgba(0, 229, 255, 0.15); stroke-width: 1; stroke-dasharray: 2 8; }
+        .floor-label { font-size: 11px; fill: rgba(0, 229, 255, 0.4); font-family: var(--font-mono); letter-spacing: 1px;}
+        .baseline { stroke: var(--brand-primary); stroke-width: 2.5; filter: drop-shadow(0 0 12px var(--brand-primary)); }
+        .axis-label { font-size: 11px; fill: var(--brand-primary); font-family: var(--font-mono); font-weight: 800; letter-spacing: 1.5px;}
+
+        .figure { transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .figure-head { fill: #000; stroke-width: 2.5; }
+        .figure-body, .figure-arm, .figure-leg { stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        .figure-label { font-size: 12px; font-family: var(--font-mono); fill: #fff; font-weight: 800; letter-spacing: 1.5px;}
+        .figure-label-sub { font-size: 10px; font-family: var(--font-mono); fill: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;}
+        .figure-readout { font-size: 16px; font-family: var(--font-mono); font-weight: 900; }
+
+        .figure-within .figure-head, .figure-within line { stroke: var(--brand-primary); filter: drop-shadow(0 0 12px var(--brand-primary)); }
+        .figure-within .figure-readout { fill: var(--brand-primary); text-shadow: 0 0 12px rgba(0,229,255,0.5);}
+        .figure-above .figure-head, .figure-above line { stroke: var(--accent-success); filter: drop-shadow(0 0 12px var(--accent-success)); }
+        .figure-above .figure-readout { fill: var(--accent-success); text-shadow: 0 0 12px rgba(16,185,129,0.5);}
+        .figure-below .figure-head, .figure-below line { stroke: var(--accent-danger); filter: drop-shadow(0 0 12px var(--accent-danger)); }
+        .figure-below .figure-readout { fill: var(--accent-danger); text-shadow: 0 0 12px rgba(239,68,68,0.5);}
+        .live-halo { fill: rgba(245, 158, 11, 0.05); stroke: var(--accent-warning); stroke-width: 1.5; animation: pulseHalo 2.5s infinite cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+        /* --- PERSONNEL ROSTER --- */
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 20px; color: rgba(255,255,255,0.2); font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 3px;}
+        .spinner { width: 60px; height: 60px; border: 2px solid rgba(255,255,255,0.05); border-top-color: var(--brand-primary); border-radius: 50%; animation: spin 1s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite; margin-bottom: 30px; filter: drop-shadow(0 0 15px var(--brand-primary));}
+        .roster-list { list-style: none; display: flex; flex-direction: column; gap: 14px; max-height: 550px; overflow-y: auto; padding-right: 12px; }
+        .roster-item { 
+            background: #030712; border: 1px solid rgba(255,255,255,0.03); 
+            padding: 20px 28px; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; 
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); border-left: 4px solid transparent;
+            box-shadow: inset 0 2px 15px rgba(0,0,0,0.5);
+        }
+        .roster-item:hover { background: rgba(0, 229, 255, 0.02); border-color: rgba(0,229,255,0.15); transform: scale(1.02); box-shadow: 0 15px 35px rgba(0,0,0,0.8); z-index: 2;}
+        .roster-item.is-live { border-left-color: var(--accent-warning); background: linear-gradient(90deg, rgba(245, 158, 11, 0.05), transparent); }
+        .roster-info strong { display: block; font-size: 1.2rem; font-weight: 800; color: #fff; letter-spacing: 1px;}
+        .roster-sub { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); margin-top: 8px; display: block; letter-spacing: 1px;}
+        .roster-status { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 900; text-align: right; min-width: 110px; }
+        .roster-actions { display: flex; gap: 14px; margin-left: 30px; }
+        .mini-btn { 
+            padding: 10px 16px; font-size: 0.7rem; font-family: var(--font-mono); font-weight: 800; border-radius: 6px; 
+            background: rgba(255,255,255,0.03); border: 1px solid transparent; color: var(--text-muted); 
+            cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1.5px;
+        }
+        .mini-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .track-btn.active { background: rgba(245, 158, 11, 0.1); color: var(--accent-warning); border-color: rgba(245,158,11,0.3); }
+        .remove-btn:hover { background: rgba(239, 68, 68, 0.1); color: var(--accent-danger); border-color: rgba(239,68,68,0.3); }
+
+        /* --- INCIDENT LEDGER --- */
+        .console-logs { 
+            list-style: none; max-height: 320px; overflow-y: auto; background: #000; 
+            padding: 24px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.03); 
+            font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);
+            box-shadow: inset 0 10px 30px rgba(0,0,0,1);
+        }
+        .log-item { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; align-items: flex-start; gap: 14px; line-height: 1.5;}
+        .log-item::before { content: '>'; color: var(--brand-primary); font-weight: 900; }
+        .log-item:last-child { border-bottom: none; }
+
+        /* --- FLOATING ACTION BUTTONS --- */
+        .fab-container { position: fixed; bottom: 50px; right: 50px; z-index: var(--z-fab); }
+        .fab-sos { 
+            background: #ef4444; border: none; 
+            padding: 20px 40px; border-radius: var(--radius-pill); font-weight: 900; font-size: 1.25rem; 
+            color: #fff; cursor: pointer; text-transform: uppercase; letter-spacing: 3px; 
+            box-shadow: 0 20px 50px rgba(239,68,68,0.5); position: relative; overflow: visible;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); font-family: var(--font-mono);
+        }
+        .fab-sos:hover { transform: scale(1.08); box-shadow: 0 25px 60px rgba(239,68,68,0.8); }
+        .pulse-ring {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 100%; height: 100%; border-radius: var(--radius-pill); border: 2px solid #ef4444;
+            animation: sosPulse 2s infinite cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none;
+        }
+
+        /* --- TOAST ALERTS --- */
+        .toast-banner { 
+            position: fixed; top: -120px; left: 50%; transform: translateX(-50%); 
+            background: rgba(239, 68, 68, 0.95); backdrop-filter: blur(16px); color: white; 
+            padding: 20px 50px; border-radius: var(--radius-pill); font-weight: 900; font-family: var(--font-mono); 
+            z-index: var(--z-toast); transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            box-shadow: 0 25px 60px rgba(239, 68, 68, 0.6), inset 0 0 0 1px rgba(255,255,255,0.2); 
+            text-transform: uppercase; letter-spacing: 2.5px; font-size: 1rem;
+        }
+        .toast-banner.show { top: 50px; }
+        
+        .watermark { 
+            position: fixed; bottom: 25px; left: 30px; font-family: var(--font-mono); font-size: 11px; 
+            color: rgba(255,255,255,0.15); letter-spacing: 5px; text-transform: uppercase; pointer-events: none; z-index: var(--z-header);
+        }
+
+        /* --- MAN-DOWN PRE-ALERT MODAL --- */
+        .man-down-modal {
+            position: fixed; inset: 0; background: rgba(239,68,68,0.9); z-index: var(--z-modal);
+            display: flex; align-items: center; justify-content: center; backdrop-filter: blur(20px);
+            animation: mdFlash 1s infinite alternate;
+        }
+        .md-content {
+            background: #000; padding: 60px; border-radius: 16px; text-align: center;
+            border: 2px solid #ef4444; box-shadow: 0 0 80px rgba(239,68,68,0.9); max-width: 600px; width: 90%;
+        }
+        .md-content h2 { color: #fff; font-size: 32px; margin-bottom: 20px; font-family: var(--font-mono); letter-spacing: 3px;}
+        .md-content p { color: #fff; font-size: 18px; margin-bottom: 25px; font-family: var(--font-ui);}
+        .md-countdown { font-size: 100px; color: #ef4444; font-family: var(--font-mono); font-weight: 900; margin: 40px 0; text-shadow: 0 0 30px rgba(239,68,68,0.9);}
+
+        /* --- ANIMATION KEYFRAMES --- */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes mdFlash { from { background: rgba(239,68,68,0.7); } to { background: rgba(239,68,68,0.95); } }
+        @keyframes pulseHalo { 0% { r: 20; opacity: 1; stroke-width: 2.5;} 100% { r: 100; opacity: 0; stroke-width: 0;} }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes sosPulse { 0% { width: 100%; height: 100%; opacity: 1; } 100% { width: 170%; height: 170%; opacity: 0; } }
+        @keyframes pulseSun { 0% { transform: scale(0.95); filter: drop-shadow(0 0 25px #f59e0b); } 100% { transform: scale(1.05); filter: drop-shadow(0 0 50px #f59e0b); } }
+        @keyframes floatCloud { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes rainDrop { 0% { transform: translateY(-15px); opacity: 1; } 100% { transform: translateY(30px); opacity: 0; } }
+        @keyframes pulseCore { 0% { opacity: 0.5; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1.05); } }
+        @keyframes gridHyperMove { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }
+        @keyframes borderRotate { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        @keyframes lightningFlash { 0%, 90%, 100% { filter: brightness(0.8); } 92%, 96% { filter: brightness(3.5) drop-shadow(0 0 40px #00e5ff); } 94% { filter: brightness(0.8); } }
+
+        /* --- RESPONSIVE BREAKPOINTS --- */
+        @media (max-width: 1400px) {
+            .panel-large, .panel-hero { grid-column: span 1; }
+            .dashboard-grid { grid-template-columns: 1fr; padding: 30px 5%; }
+        }
+        @media (max-width: 768px) {
+            .app-header { flex-direction: column; gap: 20px; padding: 25px; align-items: flex-start;}
+            .status-hud { width: 100%; justify-content: space-between; padding: 16px; gap: 12px;}
+            .hud-item::after { display: none; }
+            .weather-grid { flex-direction: column; text-align: center; padding: 30px; gap: 35px;}
+            .weather-grid::before { width: 100%; height: 200px; background: radial-gradient(circle, rgba(0,229,255,0.05), transparent); }
+            .w-stat-wide { grid-column: span 1; }
+            .panel-hero { min-height: 550px; padding: 20px;}
+            .map-container-hero, .svg-container-hero { height: 550px; }
+            .fab-container { bottom: 30px; right: 30px; left: 30px; }
+            .fab-sos { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAYS -->
+    <div class="crt-scanlines"></div>
+    <div class="ambient-glow-core"></div>
+
+    <!-- MAIN HEADER -->
+    <header class="app-header">
+        <div class="brand">
+            <h1>WORKER MONITORING <span class="version-tag">KERNEL v5.4</span></h1>
+            <p>Advanced Spatial Telemetry & Atmospheric Grid</p>
+        </div>
+        <div id="summaryBar" class="status-hud">
+            <div class="hud-item"><span class="hud-label">Clearance</span><strong id="statRole" class="hud-value highlight">AWAITING</strong></div>
+            <div class="hud-item"><span class="hud-label">Active Nodes</span><strong id="statActive" class="hud-value">0 Tracked</strong></div>
+            <div class="hud-item"><span class="hud-label">Uplink Status</span><strong id="statStatus" class="hud-value status-warning" style="color:var(--accent-warning);">🟡 PENDING</strong></div>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+
+        <!-- PANEL 1: AUTHENTICATION -->
+        <section class="panel" id="panelAuth">
+            <div class="panel-header"><span class="step-badge">01</span><h2>Admin Command & Connect</h2></div>
+            <div class="control-row"><input type="text" id="groupCodeInput" placeholder="Enter Site Code (e.g. TEAM123)" autocomplete="off"></div>
+            <div class="button-split">
+                <button id="createGroupBtn" class="btn btn-primary"><span class="icon">👑</span> Create as Admin</button>
+                <button id="joinGroupActionBtn" class="btn btn-outline"><span class="icon">👷</span> Join as Worker</button>
+            </div>
+        </section>
+
+        <!-- PANEL 2: IDENTITY & INJECTION -->
+        <section class="panel" id="panelInput">
+            <div class="panel-header"><span class="step-badge">02</span><h2>Node Identity & Sensor Link</h2></div>
+            <form id="addForm" onsubmit="return false;">
+                <div class="input-group"><label>Operator Name</label><input type="text" id="nameInput" placeholder="e.g. Vaibhav" required autocomplete="off"></div>
+                <div class="input-group"><label>Designation / Role</label><input type="text" id="designationInput" placeholder="e.g. Lead Engineer" required autocomplete="off"></div>
+                <div class="sensor-controls">
+                    <button type="button" id="captureBtn" class="btn btn-sensor">📍 Auto-Fetch GPS & Altitude</button>
+                    <button type="button" id="manualToggle" class="btn btn-text">⚙️ Toggle Manual Entry</button>
+                </div>
+                
+                <div id="gpsReadout" class="gps-readout" hidden></div>
+                <div id="manualFields" class="manual-override" hidden>
+                    <label>Manual Sensor Override</label>
+                    <input type="number" id="manualHeight" step="0.1" placeholder="Elevation Z-Axis (m)" style="margin-bottom: 12px;">
+                    <div class="coord-split">
+                        <input type="number" id="manualLat" step="0.000001" placeholder="Latitude (X)">
+                        <input type="number" id="manualLon" step="0.000001" placeholder="Longitude (Y)">
+                    </div>
+                </div>
+                <button type="submit" id="addBtn" class="btn btn-submit" disabled>+ Inject into Grid</button>
+            </form>
+        </section>
+
+        <!-- PANEL 3: METEOROLOGY -->
+        <section class="panel panel-large" id="panelWeather">
+            <div class="panel-header"><span class="step-badge">03</span><h2>Live Atmospheric Telemetry</h2></div>
+            <div id="weatherWidget" class="weather-grid">
+                <div class="weather-animation-box" id="weatherIconBox"><div class="weather-icon-placeholder">AWAITING GPS...</div></div>
+                <div class="weather-data-box">
+                    <div class="w-stat"><span class="w-label">Temp</span><strong id="wTemp">--°C</strong></div>
+                    <div class="w-stat"><span class="w-label">Feels Like</span><strong id="wFeels">--°C</strong></div>
+                    <div class="w-stat"><span class="w-label">Humidity</span><strong id="wHum">--%</strong></div>
+                    <div class="w-stat"><span class="w-label">Wind Speed</span><strong id="wWind">-- km/h</strong></div>
+                    <div class="w-stat"><span class="w-label">Pressure</span><strong id="wPress">-- hPa</strong></div>
+                    <div class="w-stat"><span class="w-label">Air Quality (AQI)</span><strong id="wAqi" class="aqi-badge">--</strong></div>
+                    <div class="w-stat w-stat-wide"><span class="w-label">Condition</span><strong id="wCondition" class="condition-text">--</strong></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANEL 4: ACTIVE PERSONNEL -->
+        <section class="panel panel-large" id="panelRoster">
+            <div class="panel-header"><span class="step-badge">04</span><h2>Active Personnel Grid</h2></div>
+            <div id="emptyHint" class="empty-state"><div class="spinner"></div><p>AWAITING HARDWARE UPLINK...</p></div>
+            <ul id="rosterList" class="roster-list"></ul>
+        </section>
+
+        <!-- PANEL 5: TOPOGRAPHY MAP -->
+        <section class="panel panel-hero" id="panelMap">
+            <div class="panel-header"><span class="step-badge">05</span><h2>Geographic Topography & Perimeter</h2></div>
+            <div class="map-container-hero"><div id="map"></div><div class="map-overlay-corners"></div></div>
+        </section>
+
+        <!-- PANEL 6: Z-AXIS SVG GRAPH -->
+        <section class="panel panel-hero" id="panelGraph">
+            <div class="panel-header"><span class="step-badge">06</span><h2>Spatial Elevation Matrix (Floor Levels)</h2></div>
+            <div class="svg-container-hero"><svg id="graphSvg" preserveAspectRatio="xMidYMid meet"></svg><div class="map-overlay-corners"></div></div>
+        </section>
+
+        <!-- PANEL 7: CONFIGURATION CALIBRATION -->
+        <section class="panel" id="panelConfig">
+            <div class="panel-header"><span class="step-badge">07</span><h2>Physics & Perimeter Calibration</h2></div>
+            <div class="config-grid">
+                <div class="input-group"><label>Secret Alert Channel (Ntfy.sh Topic)</label><input type="text" id="ntfyTopicInput" placeholder="e.g. altiguard-xyz" autocomplete="off" disabled></div>
+                <div class="input-group"><label>Geofence Radius (m)</label><input type="number" id="geofenceRadiusInput" step="10" value="500" disabled></div>
+                <div class="input-group"><label>Structural Datum (Zero Point)</label><div class="flex-row"><input type="number" id="referenceInput" step="0.1" value="0" disabled><button id="setRefBtn" class="btn btn-outline slim" disabled>Set Zero</button></div></div>
+                <div class="input-group"><label>Floor Height Multiplier (m)</label><input type="number" id="floorInput" step="0.1" value="3.5" disabled></div>
+                <div class="input-group"><label>Safe Ceiling/Floor (± m)</label><input type="number" id="limitInput" step="0.5" value="2.0" disabled></div>
+                <div class="input-group"><label>Kinematic Drop Limit (m)</label><input type="number" id="dropInput" step="0.1" value="1.5" disabled></div>
+                <div class="input-group"><label>Drop Window (seconds)</label><input type="number" id="windowInput" step="1" value="4" disabled></div>
+                <div class="input-group"><label>Man-Down Inactivity Timer (mins)</label><input type="number" id="manDownInput" step="0.5" value="3" disabled></div>
+            </div>
+            <button id="testAlertBtn" class="btn btn-warning full-width mt-10">⚠️ Test Siren</button>
+        </section>
+
+        <!-- PANEL 8: LOGS & EXPORT -->
+        <section class="panel" id="panelLogs">
+            <div class="panel-header"><span class="step-badge">08</span><h2>Command Incident Ledger</h2></div>
+            <ul id="logList" class="console-logs"></ul>
+            <button id="downloadLogsBtn" class="btn btn-outline full-width mt-10">📥 Download Incident Report (.txt)</button>
+        </section>
+
+    </main>
+
+    <!-- FLOATING SOS -->
+    <div class="fab-container">
+        <button id="sosTriggerBtn" class="fab-btn fab-sos"><span class="pulse-ring"></span>🚨 INITIATE SOS</button>
+    </div>
+
+    <div id="alertBanner" class="toast-banner" hidden></div>
+    <div id="devCredit" class="watermark">COETA WORKER MONITORING // ENGINEERED BY VAIBHAV RAJU KONDANE</div>
+
+    <!-- MAN DOWN MODAL (INACTIVITY PRE-ALERT) -->
+    <div id="manDownModal" class="man-down-modal" hidden>
+        <div class="md-content">
+            <h2>⚠️ INACTIVITY DETECTED</h2>
+            <p>System detects no movement. Site-wide Man-Down Alert triggering in:</p>
+            <div id="mdCountdown" class="md-countdown">30</div>
+            <button id="mdOkayBtn" class="btn btn-submit full-width" style="font-size:1.2rem; padding: 20px;">I AM OKAY (CANCEL)</button>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- UNIFIED JAVASCRIPT ENGINE (ARMOR PLATED)   -->
+    <!-- ========================================== -->
+    <script>
+        /**
+         * ============================================================================
+         * WORKER MONITORING - ENTERPRISE CLIENT ENGINE
+         * VERSION: 5.4.0 (Defensive Armor Plating & Man-Down Update)
+         * ============================================================================
+         * This engine encapsulates all logic within an IIFE to prevent global pollution.
+         * It features extensive null-checking, a dedicated Web Audio synthesizer, and
+         * state-machine driven kinematics.
+         */
+        (function () {
+            "use strict";
+
+            // ---------------------------------------------------------
+            // 1. CORE MATH & UTILITIES
+            // ---------------------------------------------------------
+            const Utils = {
+                escapeHtml: (str) => {
+                    if (!str) return "";
+                    return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+                },
+                niceStep: (maxVal) => { 
+                    const rough = maxVal / 4; 
+                    const mag = Math.pow(10, Math.floor(Math.log10(rough || 1))); 
+                    const norm = rough / mag; 
+                    return norm < 1.5 ? 1 * mag : norm < 3 ? 2 * mag : norm < 7 ? 5 * mag : 10 * mag; 
+                },
+                calculateDistance: (lat1, lon1, lat2, lon2) => {
+                    const R = 6371e3; // Earth radius in meters
+                    const p1 = lat1 * Math.PI/180;
+                    const p2 = lat2 * Math.PI/180;
+                    const dp = (lat2-lat1) * Math.PI/180;
+                    const dl = (lon2-lon1) * Math.PI/180;
+                    const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+                    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+                },
+                safeGetDOM: (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) console.warn(`[DOM Warning] Missing element: #${id}`);
+                    return el;
+                },
+                safeBind: (id, event, handler) => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener(event, handler);
+                }
+            };
+
+            // ---------------------------------------------------------
+            // 2. STATE MANAGEMENT & CONFIGURATION
+            // ---------------------------------------------------------
+            const CONFIG = {
+                STORAGE_KEY: "altiguard_v5_settings",
+                DEFAULT_LIMIT: 2.0,
+                DEFAULT_DROP: 1.5,
+                DEFAULT_WINDOW: 4,
+                DEFAULT_FLOOR: 3.5,
+                DEFAULT_NTFY: "",
+                DEFAULT_GEOFENCE: 500,
+                DEFAULT_MANDOWN: 3 // minutes
+            };
+
+            const STATE = {
+                role: "worker", 
+                groupCode: null,
+                mySelfId: null,
+                liveTrackingId: null,
+                gpsWatchId: null,
+                globalBaseline: 0,
+                geofenceRadius: CONFIG.DEFAULT_GEOFENCE,
+                group: [],
+                logs: [],
+                kinematicHistory: [],
+                mapInstance: null,
+                mapMarkers: {},
+                geofenceCircle: null,
+                hospitalLayer: null,
+                pendingLocation: null,
+                isManualMode: false,
+                baroSensor: null,
+                baroBaseline: null,
+                
+                // Man-Down Trackers
+                lastMoveTime: Date.now(),
+                lastMoveLat: null,
+                lastMoveLon: null,
+                mdCheckInterval: null,
+                mdCountdownInterval: null,
+                mdActive: false
+            };
+
+            let localSettings = { ...CONFIG };
+            try { 
+                const saved = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY));
+                if(saved) localSettings = { ...CONFIG, ...saved };
+                if(localSettings.ntfyTopic === "undefined") localSettings.ntfyTopic = "";
+            } catch(e){}
+
+            // ---------------------------------------------------------
+            // 3. TACTICAL AUDIO SYNTHESIZER (Browser Block Bypass)
+            // ---------------------------------------------------------
+            const AudioEngine = {
+                ctx: null,
+                unlocked: false,
+                init: function() {
+                    if (this.ctx) return;
+                    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+                },
+                unlock: function() {
+                    if (this.unlocked || !this.ctx) return;
+                    if (this.ctx.state === 'suspended') this.ctx.resume();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    gain.gain.value = 0;
+                    osc.connect(gain).connect(this.ctx.destination);
+                    osc.start(0); osc.stop(0.1);
+                    this.unlocked = true;
+                },
+                trigger: function(isManDown = false) {
+                    this.init();
+                    if (!this.ctx) return;
+                    if (this.ctx.state === 'suspended') this.ctx.resume();
+                    if (navigator.vibrate) try { navigator.vibrate(isManDown ? [500,200,500,200,1000] : [200,100,200,100,400]); } catch (e) {}
+                    
+                    try {
+                        // Different waveform patterns for different threats
+                        const pattern = isManDown 
+                            ? [[440, 0.4], [0, 0.1], [880, 0.4], [0, 0.1], [440, 0.6]] // Dual-tone sweep
+                            : [[880, 0.15], [0, 0.05], [660, 0.15], [0, 0.05], [880, 0.28]]; // Rapid chirp
+                        
+                        let t = this.ctx.currentTime;
+                        pattern.forEach(([freq, dur]) => {
+                            if (freq > 0) {
+                                const osc = this.ctx.createOscillator();
+                                const gain = this.ctx.createGain();
+                                osc.type = isManDown ? "sawtooth" : "square"; 
+                                osc.frequency.value = freq;
+                                gain.gain.setValueAtTime(0, t);
+                                gain.gain.linearRampToValueAtTime(0.3, t + 0.02);
+                                gain.gain.linearRampToValueAtTime(0, t + dur);
+                                osc.connect(gain).connect(this.ctx.destination);
+                                osc.start(t); osc.stop(t + dur + 0.05);
+                            }
+                            t += dur;
+                        });
+                    } catch (e) {}
+                }
+            };
+            // Force unlock audio context on first human interaction
+            document.body.addEventListener('click', () => AudioEngine.unlock(), { once: true });
+
+            // ---------------------------------------------------------
+            // 4. NETWORK & SOCKET LAYER
+            // ---------------------------------------------------------
+            let socket;
+            try {
+                if (typeof io !== 'undefined') { socket = io(); } 
+                else { throw new Error("Socket.io missing"); }
+            } catch (e) {
+                console.error("CRITICAL: Socket engine failed to initialize.", e);
+                // Create dummy socket to prevent null pointer crashes
+                socket = { on: () => {}, emit: () => {} };
+                setTimeout(() => {
+                    const st = Utils.safeGetDOM("statStatus");
+                    if(st) { st.innerHTML = "🔴 OFFLINE"; st.className = "hud-value status-danger"; }
+                    UI.showAlert("⚠️ OFFLINE MODE: Server connection failed.");
+                }, 1500);
+            }
+
+            // Socket Listeners
+            socket.on('roleAssigned', (data) => {
+                STATE.role = data.role; STATE.groupCode = data.groupCode;
+                const sr = Utils.safeGetDOM("statRole"); if(sr) sr.textContent = STATE.role.toUpperCase();
+                const st = Utils.safeGetDOM("statStatus"); if(st) { st.innerHTML = "🟢 SECURE"; st.className = "hud-value status-secure"; }
+                
+                const isPrivileged = (STATE.role === 'admin' || STATE.role === 'creator');
+                
+                // Unlock Admin Controls
+                ['ntfyTopicInput', 'geofenceRadiusInput', 'referenceInput', 'setRefBtn', 'limitInput', 'dropInput', 'windowInput', 'floorInput', 'manDownInput'].forEach(id => {
+                    const el = Utils.safeGetDOM(id);
+                    if(el) el.disabled = !isPrivileged;
+                });
+                
+                const topicInput = Utils.safeGetDOM('ntfyTopicInput');
+                if (isPrivileged && topicInput && topicInput.value) {
+                    socket.emit('updateNtfyTopic', topicInput.value.trim());
+                }
+
+                UI.showAlert(`Uplink Established: ${STATE.groupCode} [${STATE.role.toUpperCase()}]`);
+                UI.renderAll();
+            });
+
+            socket.on('syncGroup', (members) => { STATE.group = members; UI.renderAll(); });
+            
+            socket.on('syncBaseline', (baseline) => { 
+                STATE.globalBaseline = baseline; 
+                const ref = Utils.safeGetDOM('referenceInput'); if(ref) ref.value = baseline; 
+                UI.renderAll(); 
+            });
+            
+            socket.on('syncGeofence', (radius) => { 
+                STATE.geofenceRadius = radius; 
+                const geo = Utils.safeGetDOM('geofenceRadiusInput'); if(geo && parseFloat(geo.value) !== radius) geo.value = radius; 
+                MapEngine.renderMap(); 
+                if (STATE.geofenceCircle && STATE.mapInstance) {
+                    STATE.mapInstance.fitBounds(STATE.geofenceCircle.getBounds(), { padding: [20, 20] });
+                }
+            });
+
+            socket.on('syncNtfyTopic', (topic) => { const nt = Utils.safeGetDOM('ntfyTopicInput'); if(nt) nt.value = topic; });
+            
+            socket.on('receiveAlert', (data) => { 
+                UI.showAlert(`⚠️ FALL DETECTED: ${data.name} (${data.drop}m)`); 
+                UI.logEvent(`⚠️ Fall: ${data.name} (${data.drop}m)`); 
+                AudioEngine.trigger(false); 
+            });
+            
+            socket.on('receiveSOS', (payload) => { 
+                const type = payload.isManDown ? "MAN-DOWN" : "SOS PANIC";
+                UI.showAlert(`🚨 ${type}: ${payload.name}`); 
+                UI.logEvent(`🚨 ${type}: ${payload.name}`); 
+                AudioEngine.trigger(payload.isManDown); 
+            });
+
+            // ---------------------------------------------------------
+            // 5. EXTERNAL API INTEGRATIONS (Weather & Ntfy)
+            // ---------------------------------------------------------
+            async function fetchWithTimeout(resource, options = {}) {
+                const { timeout = 8000 } = options;
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), timeout);
+                try {
+                    const response = await fetch(resource, { ...options, signal: controller.signal });
+                    clearTimeout(id); return response;
+                } catch (err) { clearTimeout(id); throw err; }
+            }
+
+            function transmitNtfyAlert(title, message, tags, lat, lon) {
+                try { if (window.Notification && Notification.permission === "granted") new Notification(title, { body: message }); } catch(e){}
+
+                const topicInput = Utils.safeGetDOM("ntfyTopicInput");
+                const topic = (topicInput && topicInput.value.trim()) || localSettings.ntfyTopic;
+                if (!topic) return; 
+                
+                const cleanTopic = topic.replace(/[^a-zA-Z0-9-_]/g, "");
+                let ntfyUrl = `https://ntfy.sh/${cleanTopic}?title=${encodeURIComponent(title)}&priority=urgent&tags=${encodeURIComponent(tags)}`;
+                if (lat && lon) ntfyUrl += `&click=${encodeURIComponent(`https://www.google.com/maps?q=${lat},${lon}`)}`;
+
+                fetch(ntfyUrl, { method: 'POST', body: message })
+                    .then(res => { if(res.ok) UI.logEvent(`✅ Ntfy Push Sent: ${title}`); else UI.logEvent(`❌ Ntfy Server Error: ${res.status}`); })
+                    .catch(err => UI.logEvent(`❌ Ntfy Blocked by Browser. Server-side will handle it.`));
+            }
+
+            async function fetchWeatherAndAQI(lat, lon) {
+                try {
+                    const weatherRes = await fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,surface_pressure`);
+                    const weatherData = await weatherRes.json();
+                    const aqiRes = await fetchWithTimeout(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`);
+                    const aqiData = await aqiRes.json();
+
+                    const current = weatherData.current;
+                    const setText = (id, txt) => { const el = Utils.safeGetDOM(id); if(el) el.innerText = txt; };
+                    
+                    setText("wTemp", `${current.temperature_2m}°C`);
+                    setText("wFeels", `${current.apparent_temperature}°C`);
+                    setText("wHum", `${current.relative_humidity_2m}%`);
+                    setText("wWind", `${current.wind_speed_10m} km/h`);
+                    setText("wPress", `${Math.round(current.surface_pressure)} hPa`);
+                    
+                    const aqiEl = Utils.safeGetDOM("wAqi");
+                    if(aqiEl) {
+                        const aqi = aqiData.current.european_aqi;
+                        aqiEl.innerText = aqi;
+                        aqiEl.className = "aqi-badge";
+                        if (aqi < 40) aqiEl.classList.add("aqi-good");
+                        else if (aqi < 80) aqiEl.classList.add("aqi-mod");
+                        else aqiEl.classList.add("aqi-poor");
+                    }
+
+                    const iconBox = Utils.safeGetDOM("weatherIconBox");
+                    const conditionEl = Utils.safeGetDOM("wCondition");
+                    const code = current.weather_code;
+                    
+                    if(conditionEl && iconBox) {
+                        let conditionText = "Unknown"; let iconHtml = "";
+                        if (code === 0) { conditionText = "Clear Sky"; iconHtml = `<div class="anim-sun"></div>`; }
+                        else if (code === 1 || code === 2) { conditionText = "Partly Cloudy"; iconHtml = `<div class="anim-sun-cloud-wrapper"><div class="anim-sun"></div><div class="anim-cloud"></div></div>`; }
+                        else if (code >= 51 && code <= 67) { conditionText = "Rain"; iconHtml = `<div class="anim-cloud anim-rain"></div>`; }
+                        else if (code >= 71 && code <= 86) { conditionText = "Snow"; iconHtml = `<div class="anim-cloud anim-snow"></div>`; }
+                        else if (code >= 95) { conditionText = "Storm"; iconHtml = `<div class="anim-cloud anim-rain anim-lightning"></div>`; }
+                        else { conditionText = "Overcast"; iconHtml = `<div class="anim-cloud"></div>`; }
+
+                        conditionEl.innerText = conditionText;
+                        iconBox.innerHTML = iconHtml;
+                    }
+                } catch (e) {}
+            }
+
+            async function fetchAddress(lat, lon) {
+                try {
+                    const res = await fetchWithTimeout(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+                    const data = await res.json();
+                    if (data && data.address) { const addr = data.address; return `${addr.road || addr.suburb || ''}, ${addr.city || addr.town || addr.county || ''}`; }
+                    return "Coordinates locked.";
+                } catch(e) { return "Coordinates locked."; }
+            }
+
+            // ---------------------------------------------------------
+            // 6. KINEMATIC & TRACKING ENGINE
+            // ---------------------------------------------------------
+            window.toggleTrack = function(id) { if (STATE.liveTrackingId === id) stopTracking(); else startTracking(id); };
+            window.removeNode = function(id) { if (STATE.liveTrackingId === id) stopTracking(); socket.emit('removePerson', id); };
+
+            function startTracking(personId) {
+                if (!navigator.geolocation) return UI.showAlert("Geolocation completely disabled in browser.");
+                stopTracking(); AudioEngine.trigger(false); 
+                STATE.liveTrackingId = personId; STATE.lastMoveTime = Date.now(); UI.renderAll(); 
+
+                STATE.gpsWatchId = navigator.geolocation.watchPosition((pos) => {
+                    const person = STATE.group.find(p => p.id === STATE.liveTrackingId);
+                    if (person) {
+                        // Man-Down Movement Check (Requires > 3 meters movement)
+                        if (STATE.lastMoveLat !== null && STATE.lastMoveLon !== null) {
+                            const distMoved = Utils.calculateDistance(STATE.lastMoveLat, STATE.lastMoveLon, pos.coords.latitude, pos.coords.longitude);
+                            if (distMoved > 3) { 
+                                STATE.lastMoveTime = Date.now();
+                                STATE.lastMoveLat = pos.coords.latitude; STATE.lastMoveLon = pos.coords.longitude;
+                            }
+                        } else {
+                            STATE.lastMoveLat = pos.coords.latitude; STATE.lastMoveLon = pos.coords.longitude;
+                        }
+
+                        person.lat = pos.coords.latitude; person.lon = pos.coords.longitude;
+                        if (pos.coords.altitude !== null) person.height = pos.coords.altitude;
+                        
+                        checkGeofenceBreach(person);
+                        checkKinematicDrop(person); 
+                        socket.emit('updateGroupData', STATE.group); 
+                        UI.renderAll();
+                    }
+                }, (err) => { console.warn(`GPS Warn: ${err.message}`); }, { enableHighAccuracy: true, maximumAge: 0 });
+
+                // Man-Down Interval Checker
+                STATE.mdCheckInterval = setInterval(() => {
+                    if (STATE.mdActive) return;
+                    const mdIn = Utils.safeGetDOM("manDownInput");
+                    const limitMins = (mdIn ? parseFloat(mdIn.value) : CONFIG.DEFAULT_MANDOWN) || CONFIG.DEFAULT_MANDOWN;
+                    if (limitMins <= 0) return; 
+                    
+                    if (Date.now() - STATE.lastMoveTime > (limitMins * 60 * 1000)) {
+                        triggerManDownWarning();
+                    }
+                }, 10000); 
+            }
+
+            function stopTracking() {
+                if (STATE.gpsWatchId) navigator.geolocation.clearWatch(STATE.gpsWatchId);
+                if (STATE.mdCheckInterval) clearInterval(STATE.mdCheckInterval);
+                STATE.liveTrackingId = null; STATE.gpsWatchId = null; UI.renderAll();
+            }
+
+            function triggerManDownWarning() {
+                if (STATE.mdActive) return;
+                STATE.mdActive = true;
+                const modal = Utils.safeGetDOM('manDownModal');
+                const countdownEl = Utils.safeGetDOM('mdCountdown');
+                
+                if(modal) modal.hidden = false;
+                AudioEngine.trigger(true); // Wake them up
+                
+                let timeLeft = 30;
+                if(countdownEl) countdownEl.innerText = timeLeft;
+                
+                STATE.mdCountdownInterval = setInterval(() => {
+                    timeLeft--;
+                    if(countdownEl) countdownEl.innerText = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(STATE.mdCountdownInterval);
+                        if(modal) modal.hidden = true;
+                        
+                        const me = STATE.group.find(p => p.id === STATE.mySelfId);
+                        if(me) {
+                            socket.emit('triggerSOS', { name: me.name, lat: me.lat, lon: me.lon, height: me.height, isManDown: true });
+                            transmitNtfyAlert(`🚨 MAN-DOWN: ${me.name}`, `${me.name} is incapacitated!`, "sos,warning", me.lat, me.lon);
+                        }
+                    }
+                }, 1000);
+            }
+
+            Utils.safeBind('mdOkayBtn', 'click', () => {
+                clearInterval(STATE.mdCountdownInterval);
+                const modal = Utils.safeGetDOM('manDownModal'); if(modal) modal.hidden = true;
+                STATE.mdActive = false; STATE.lastMoveTime = Date.now(); 
+            });
+
+            function checkGeofenceBreach(person) {
+                if (STATE.group.length === 0 || person.lat === null || person.lon === null) return;
+                const adminNode = STATE.group.find(p => p.role === 'admin' || p.role === 'creator');
+                
+                if (adminNode && adminNode.lat && adminNode.lon && adminNode.id !== person.id) {
+                    const dist = Utils.calculateDistance(adminNode.lat, adminNode.lon, person.lat, person.lon);
+                    if (dist > STATE.geofenceRadius) {
+                        if (!person.lastGeoAlert || Date.now() - person.lastGeoAlert > 10000) {
+                            UI.showAlert(`🚨 BREACH: ${person.name} is ${Math.round(dist)}m away!`);
+                            AudioEngine.trigger(false);
+                            transmitNtfyAlert(`🚨 BREACH: ${person.name}`, `${person.name} left safe zone!`, "warning,world_map", person.lat, person.lon);
+                            person.lastGeoAlert = Date.now();
+                        }
+                    }
+                }
+            }
+
+            function checkKinematicDrop(person) {
+                const now = Date.now();
+                const dIn = Utils.safeGetDOM("dropInput"), wIn = Utils.safeGetDOM("windowInput");
+                const limit = dIn ? parseFloat(dIn.value) || CONFIG.DEFAULT_DROP : CONFIG.DEFAULT_DROP;
+                const windowSec = wIn ? parseInt(wIn.value) || CONFIG.DEFAULT_WINDOW : CONFIG.DEFAULT_WINDOW;
+                
+                STATE.kinematicHistory.push({ time: now, h: person.height });
+                STATE.kinematicHistory = STATE.kinematicHistory.filter(e => now - e.time <= windowSec * 1000);
+                
+                if (STATE.kinematicHistory.length >= 2) {
+                    const peak = Math.max(...STATE.kinematicHistory.map(e => e.h));
+                    if (peak - person.height >= limit) {
+                        const dropAmt = (peak - person.height).toFixed(2);
+                        socket.emit('triggerFallAlert', { name: person.name, drop: dropAmt, id: person.id, lat: person.lat, lon: person.lon });
+                        AudioEngine.trigger(false); 
+                        transmitNtfyAlert(`🚨 FALL: ${person.name}`, `${person.name} dropped ${dropAmt}m!`, "rotating_light,skull", person.lat, person.lon);
+                        STATE.kinematicHistory = []; 
+                    }
+                }
+            }
+
+            // ---------------------------------------------------------
+            // 7. USER INTERFACE & RENDERING ENGINE
+            // ---------------------------------------------------------
+            const UI = {
+                showAlert: (msg) => { 
+                    const ab = Utils.safeGetDOM("alertBanner");
+                    if(!ab) return; 
+                    ab.textContent = msg; ab.classList.add("show"); ab.hidden = false; 
+                    setTimeout(() => ab.classList.remove("show"), 5000); 
+                },
+                logEvent: (msg) => { 
+                    STATE.logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`); 
+                    if(STATE.logs.length > 30) STATE.logs.pop(); 
+                    const ll = Utils.safeGetDOM("logList");
+                    if(ll) ll.innerHTML = STATE.logs.map(l => `<li class="log-item">${l}</li>`).join(""); 
+                },
+                renderAll: () => {
+                    const sa = Utils.safeGetDOM("statActive"); if(sa) sa.textContent = `${STATE.group.length} Tracked`;
+                    if (STATE.group.length === 0) { 
+                        const eh = Utils.safeGetDOM("emptyHint"); if(eh) eh.style.display = "flex"; 
+                        const rl = Utils.safeGetDOM("rosterList"); if(rl) rl.innerHTML = ""; 
+                        const gs = Utils.safeGetDOM("graphSvg"); if(gs) gs.innerHTML = ""; 
+                    } else { 
+                        const eh = Utils.safeGetDOM("emptyHint"); if(eh) eh.style.display = "none"; 
+                        UI.renderRoster(); UI.renderGraph(); 
+                    }
+                    MapEngine.renderMap();
+                },
+                renderRoster: () => {
+                    const rl = Utils.safeGetDOM("rosterList"); if(!rl) return;
+                    rl.innerHTML = STATE.group.map(p => {
+                        const relHeight = p.height - STATE.globalBaseline;
+                        let statusClass = "status-within"; 
+                        if (relHeight > 0.1) statusClass = "status-above"; 
+                        else if (relHeight < -0.1) statusClass = "status-below"; 
+
+                        const isLive = p.id === STATE.liveTrackingId;
+                        const isMe = p.id === STATE.mySelfId;
+                        
+                        let btns = "";
+                        if (STATE.role === "admin" || STATE.role === "creator" || isMe) {
+                            btns += `<button class="mini-btn remove-btn" onclick="removeNode('${p.id}')">✕ Eject</button>`;
+                        }
+                        if (isMe) {
+                            btns += `<button class="mini-btn track-btn ${isLive ? 'active' : ''}" onclick="toggleTrack('${p.id}')">${isLive ? "⏹ Halt" : "📍 Track"}</button>`;
+                        }
+
+                        return `
+                            <li class="roster-item ${isLive ? 'is-live' : ''}">
+                                <div class="roster-info">
+                                    <strong>${(p.role === 'admin' || p.role === 'creator') ? '👑 ' : ''}${Utils.escapeHtml(p.name)}</strong>
+                                    <span class="roster-sub">${Utils.escapeHtml(p.designation)} <br> Raw Z: ${p.height.toFixed(2)}m</span>
+                                </div>
+                                <div class="roster-status ${statusClass}">${(relHeight >= 0 ? "+" : "")}${relHeight.toFixed(2)}m</div>
+                                <div class="roster-actions">${btns}</div>
+                            </li>
+                        `;
+                    }).join('');
+                },
+                renderGraph: () => {
+                    const gs = Utils.safeGetDOM("graphSvg"); if(!gs) return;
+                    const W = gs.clientWidth || 1000; const H = gs.clientHeight || 600; 
+                    const paddingLeft = 60; const paddingRight = 40; const paddingTopBottom = 100; 
+                    
+                    const lIn = Utils.safeGetDOM("limitInput"), fIn = Utils.safeGetDOM("floorInput");
+                    const limit = lIn ? parseFloat(lIn.value) || CONFIG.DEFAULT_LIMIT : CONFIG.DEFAULT_LIMIT;
+                    const floorH = fIn ? parseFloat(fIn.value) || CONFIG.DEFAULT_FLOOR : CONFIG.DEFAULT_FLOOR;
+                    
+                    const rels = STATE.group.map(p => p.height - STATE.globalBaseline);
+                    const maxAbs = Math.max(limit * 1.5, ...rels.map(Math.abs), 1);
+                    const plotHeight = H - (paddingTopBottom * 2);
+                    const scaleY = (plotHeight / 2) / maxAbs; const midY = H / 2;
+
+                    let svgHtml = "";
+                    const usableWidth = W - paddingLeft - paddingRight;
+
+                    const startFloor = Math.floor(-maxAbs / floorH) - 1;
+                    const endFloor = Math.ceil(maxAbs / floorH) + 1;
+                    const floorSpacingPx = floorH * scaleY;
+
+                    if (floorSpacingPx > 15) {
+                        for (let f = startFloor; f <= endFloor; f++) {
+                            const yFloor = midY - (f * floorH) * scaleY;
+                            if (yFloor >= paddingTopBottom && yFloor <= H - paddingTopBottom && f !== 0) {
+                                svgHtml += `<line class="floor-line" x1="${paddingLeft}" y1="${yFloor}" x2="${W - paddingRight}" y2="${yFloor}"></line>`;
+                                if (floorSpacingPx > 30) {
+                                    const labelStr = f > 0 ? `Lvl ${f}` : `Bsmnt ${Math.abs(f)}`;
+                                    svgHtml += `<text x="${W - paddingRight - 10}" y="${yFloor - 8}" class="floor-label" text-anchor="end">${labelStr}</text>`;
+                                }
+                            }
+                        }
+                    }
+
+                    const step = Utils.niceStep(maxAbs);
+                    for (let v = step; v <= maxAbs; v += step) {
+                        [v, -v].forEach(val => {
+                            const y = midY - (val * scaleY);
+                            if (y >= paddingTopBottom && y <= H - paddingTopBottom) {
+                                svgHtml += `<line class="grid-line" x1="${paddingLeft}" y1="${y}" x2="${W - paddingRight}" y2="${y}"></line>`;
+                                svgHtml += `<text class="axis-label" x="${paddingLeft - 10}" y="${y + 4}" text-anchor="end" font-weight="bold">${(val > 0 ? '+' : '')}${val}m</text>`;
+                            }
+                        });
+                    }
+
+                    svgHtml += `<line class="baseline" x1="${paddingLeft}" y1="${midY}" x2="${W - paddingRight}" y2="${midY}"></line>`;
+                    svgHtml += `<text class="axis-label" x="${paddingLeft - 10}" y="${midY + 4}" fill="#00e5ff" font-weight="bold" text-anchor="end">0m</text>`;
+
+                    STATE.group.forEach((p, i) => {
+                        const rel = p.height - STATE.globalBaseline;
+                        const x = paddingLeft + (usableWidth * (i + 0.5)) / STATE.group.length;
+                        const y = midY - (rel * scaleY);
+                        
+                        let status = "within"; 
+                        if (rel > 0.1) status = "above"; else if (rel < -0.1) status = "below"; 
+
+                        svgHtml += `
+                            <g class="figure figure-${status}" style="transform: translate(${x}px, ${y}px)">
+                                ${p.id === STATE.liveTrackingId ? '<circle class="live-halo" r="30" cy="-10"></circle>' : ''}
+                                <text class="figure-readout" x="0" y="-55" text-anchor="middle">${(rel >= 0 ? "+" : "")}${rel.toFixed(2)}m</text>
+                                <circle class="figure-head" cx="0" cy="-30" r="10"></circle>
+                                <line class="figure-body" x1="0" y1="-20" x2="0" y2="10"></line>
+                                <line class="figure-arm" x1="0" y1="-15" x2="-15" y2="-5"></line>
+                                <line class="figure-arm" x1="0" y1="-15" x2="15" y2="-5"></line>
+                                <line class="figure-leg" x1="0" y1="10" x2="-12" y2="30"></line>
+                                <line class="figure-leg" x1="0" y1="10" x2="12" y2="30"></line>
+                                <text class="figure-label" x="0" y="55" text-anchor="middle">${Utils.escapeHtml(p.name)}</text>
+                            </g>
+                        `;
+                    });
+                    gs.innerHTML = svgHtml;
+                }
+            };
+
+            const MapEngine = {
+                renderMap: () => {
+                    if (!STATE.mapInstance && typeof L !== "undefined" && document.getElementById('map')) {
+                        STATE.mapInstance = L.map('map').setView([20.5937, 78.9629], 5);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(STATE.mapInstance);
+                        STATE.hospitalLayer = L.layerGroup().addTo(STATE.mapInstance);
+                    }
+                    if (!STATE.mapInstance) return;
+
+                    const adminNode = STATE.group.find(p => p.role === 'admin' || p.role === 'creator');
+                    if (adminNode && adminNode.lat !== null && adminNode.lon !== null) {
+                        const centerLatLng = [adminNode.lat, adminNode.lon];
+                        if (STATE.geofenceCircle) {
+                            STATE.geofenceCircle.setLatLng(centerLatLng);
+                            STATE.geofenceCircle.setRadius(STATE.geofenceRadius);
+                        } else {
+                            STATE.geofenceCircle = L.circle(centerLatLng, {
+                                color: '#00e5ff', fillColor: '#00e5ff', fillOpacity: 0.1,
+                                radius: STATE.geofenceRadius, weight: 2, dashArray: '5, 5'
+                            }).addTo(STATE.mapInstance);
+                        }
+                    }
+
+                    const currentIds = STATE.group.map(p => p.id);
+                    for (let id in STATE.mapMarkers) {
+                        if (!currentIds.includes(id)) { STATE.mapInstance.removeLayer(STATE.mapMarkers[id]); delete STATE.mapMarkers[id]; }
+                    }
+
+                    STATE.group.forEach(p => {
+                        if (p.lat !== null && p.lon !== null) {
+                            if (STATE.mapMarkers[p.id]) { STATE.mapMarkers[p.id].setLatLng([p.lat, p.lon]); } 
+                            else {
+                                const isAdmin = (p.role === 'admin' || p.role === 'creator');
+                                const iconHtml = `<svg width="30" height="30" viewBox="0 0 24 24" fill="${isAdmin ? '#00e5ff' : (p.id === STATE.liveTrackingId ? '#f59e0b' : '#8b5cf6')}"><circle cx="12" cy="12" r="10" stroke="#fff" stroke-width="2"/></svg>`;
+                                const divIcon = L.divIcon({ className: 'tactical-marker', html: iconHtml, iconSize: [30,30] });
+                                STATE.mapMarkers[p.id] = L.marker([p.lat, p.lon], { icon: divIcon }).addTo(STATE.mapInstance).bindPopup(`<b>${isAdmin ? '👑 ' : ''}${Utils.escapeHtml(p.name)}</b>`);
+                            }
+                        }
+                    });
+                }
+            };
+            if (typeof L !== "undefined") setTimeout(MapEngine.renderMap, 500);
+
+            // ---------------------------------------------------------
+            // 8. EVENT BINDINGS (DEFENSIVE)
+            // ---------------------------------------------------------
+            Utils.safeBind("createGroupBtn", "click", () => { 
+                const input = Utils.safeGetDOM("groupCodeInput"); 
+                if(input && input.value) socket.emit('createGroup', input.value); else UI.showAlert("Enter Site Code.");
+            });
+            Utils.safeBind("joinGroupActionBtn", "click", () => { 
+                const input = Utils.safeGetDOM("groupCodeInput"); 
+                if(input && input.value) socket.emit('joinGroup', input.value); else UI.showAlert("Enter Site Code."); 
+            });
+
+            Utils.safeBind("setRefBtn", "click", () => {
+                if (STATE.role !== 'admin' && STATE.role !== 'creator') return UI.showAlert("Access Denied.");
+                const ref = Utils.safeGetDOM("referenceInput");
+                const val = ref ? (parseFloat(ref.value) || 0) : 0;
+                STATE.globalBaseline = val; socket.emit('setBaseline', val); UI.renderAll(); UI.showAlert(`Datum Zero calibrated to ${val}m`);
+            });
+
+            Utils.safeBind("manualToggle", "click", () => {
+                STATE.isManualMode = !STATE.isManualMode;
+                const mf = Utils.safeGetDOM("manualFields"), gr = Utils.safeGetDOM("gpsReadout"), ab = Utils.safeGetDOM("addBtn");
+                if(mf) mf.hidden = !STATE.isManualMode;
+                if(gr) gr.hidden = true;
+                if(ab) ab.disabled = false;
+            });
+
+            Utils.safeBind("captureBtn", "click", () => {
+                AudioEngine.trigger(false); 
+                const gr = Utils.safeGetDOM("gpsReadout");
+                if(gr) { gr.hidden = false; gr.innerHTML = `<div class="spinner" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:10px;"></div> Acquiring Lock...`; }
+                
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    STATE.pendingLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude, height: pos.coords.altitude || 0 };
+                    const [address] = await Promise.all([ fetchAddress(pos.coords.latitude, pos.coords.longitude), fetchWeatherAndAQI(pos.coords.latitude, pos.coords.longitude) ]);
+                    if(gr) gr.innerHTML = `<strong style="color:var(--brand-primary);">📍 Lock Acquired</strong><br><span style="color:#ccc;">${address}</span>`;
+                    const ab = Utils.safeGetDOM("addBtn"); if(ab) ab.disabled = false; 
+                    STATE.isManualMode = false; 
+                    const mf = Utils.safeGetDOM("manualFields"); if(mf) mf.hidden = true;
+                }, (err) => { if(gr) gr.innerHTML = `❌ GPS Error: ${err.message}`; }, { enableHighAccuracy: true });
+            });
+
+            Utils.safeBind("addForm", "submit", (e) => {
+                e.preventDefault();
+                if (!STATE.groupCode) return UI.showAlert("⚠️ Create or Join a group first!");
+
+                const nIn = Utils.safeGetDOM("nameInput"), dIn = Utils.safeGetDOM("designationInput");
+                const name = nIn ? nIn.value.trim() : "Unknown"; const designation = dIn ? dIn.value.trim() : "Operator";
+                if (!name) return;
+                if (!STATE.mySelfId) STATE.mySelfId = "OP-" + Math.random().toString(36).slice(2, 10).toUpperCase();
+                
+                let pLat = null, pLon = null, pHeight = 0;
+                if (STATE.isManualMode) {
+                    const hIn = Utils.safeGetDOM("manualHeight"), latIn = Utils.safeGetDOM("manualLat"), lonIn = Utils.safeGetDOM("manualLon");
+                    pHeight = hIn ? parseFloat(hIn.value) || 0 : 0; pLat = latIn ? parseFloat(latIn.value) || null : null; pLon = lonIn ? parseFloat(lonIn.value) || null : null;
+                    if (pLat !== null && pLon !== null) { fetchWeatherAndAQI(pLat, pLon); if(STATE.mapInstance) STATE.mapInstance.flyTo([pLat, pLon], 16); }
+                } else if (STATE.pendingLocation) {
+                    pLat = STATE.pendingLocation.lat; pLon = STATE.pendingLocation.lon; pHeight = STATE.pendingLocation.height;
+                    if (STATE.mapInstance) STATE.mapInstance.flyTo([pLat, pLon], 18);
+                }
+
+                const person = { id: STATE.mySelfId, name: name, designation: designation, role: STATE.role, height: pHeight, lat: pLat, lon: pLon, method: STATE.isManualMode ? "manual" : "auto" };
+                const existingIndex = STATE.group.findIndex(p => p.id === STATE.mySelfId);
+                if (existingIndex > -1) STATE.group[existingIndex] = person; else STATE.group.push(person);
+
+                socket.emit('updateGroupData', STATE.group);
+                if (!STATE.isManualMode) startTracking(STATE.mySelfId);
+                
+                if(nIn) nIn.value = ""; if(dIn) dIn.value = "";
+                UI.renderAll(); UI.showAlert(`✅ ${name} injected into grid.`);
+            });
+
+            // Ledger Export
+            Utils.safeBind("downloadLogsBtn", "click", () => {
+                if (STATE.logs.length === 0) return UI.showAlert("⚠️ Ledger is empty.");
+                const header = `=== INCIDENT LEDGER ===\nSITE: ${STATE.groupCode}\nDATE: ${new Date().toLocaleString()}\nEVENTS: ${STATE.logs.length}\n===\n\n`;
+                const blob = new Blob([header + STATE.logs.join("\n")], { type: "text/plain;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = `Ledger_${STATE.groupCode}_${Date.now()}.txt`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                UI.logEvent("📥 Ledger exported locally.");
+            });
+
+            // Settings Autosave
+            const saveSettings = () => { 
+                const v = (id, def) => { const el = Utils.safeGetDOM(id); return el ? parseFloat(el.value) || def : def; };
+                localSettings.limit = v("limitInput", CONFIG.DEFAULT_LIMIT);
+                localSettings.dropThreshold = v("dropInput", CONFIG.DEFAULT_DROP);
+                localSettings.dropWindow = v("windowInput", CONFIG.DEFAULT_WINDOW);
+                localSettings.floorHeight = v("floorInput", CONFIG.DEFAULT_FLOOR);
+                localSettings.manDownTimer = v("manDownInput", CONFIG.DEFAULT_MANDOWN);
+                
+                const geoIn = Utils.safeGetDOM("geofenceRadiusInput");
+                if(geoIn && (STATE.role === 'admin' || STATE.role === 'creator')) {
+                    const rad = parseFloat(geoIn.value) || CONFIG.DEFAULT_GEOFENCE;
+                    if (STATE.geofenceRadius !== rad) {
+                        localSettings.geofenceRadius = rad; STATE.geofenceRadius = rad; 
+                        socket.emit('updateGeofenceRadius', rad);
+                        const adminNode = STATE.group.find(p => p.role === 'admin' || p.role === 'creator');
+                        if (adminNode && adminNode.lat !== null && STATE.mapInstance && STATE.geofenceCircle) {
+                            STATE.geofenceCircle.setRadius(rad);
+                            STATE.mapInstance.fitBounds(STATE.geofenceCircle.getBounds(), { padding: [20, 20] });
+                        }
+                    }
+                }
+
+                localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(localSettings)); 
+                const tIn = Utils.safeGetDOM("ntfyTopicInput");
+                if (tIn && (STATE.role === 'admin' || STATE.role === 'creator')) {
+                    localSettings.ntfyTopic = tIn.value.trim(); socket.emit('updateNtfyTopic', localSettings.ntfyTopic);
+                }
+                UI.renderAll(); 
+            };
+            
+            ['limitInput', 'dropInput', 'windowInput', 'ntfyTopicInput', 'floorInput', 'geofenceRadiusInput', 'manDownInput'].forEach(id => { 
+                Utils.safeBind(id, "input", saveSettings); 
+            });
+
+            Utils.safeBind("testAlertBtn", "click", () => {
+                socket.emit('triggerFallAlert', { name: "System Diagnostic", drop: 1.5, id: "test" }); 
+                UI.showAlert(`⚠️ TEST SIREN INITIATED`); UI.logEvent("Test alert broadcasted."); AudioEngine.trigger(false);
+                transmitNtfyAlert("⚠️ TEST SIREN", "A diagnostic test siren activated.", "loudspeaker");
+            });
+
+            Utils.safeBind("sosTriggerBtn", "click", () => {
+                if (!STATE.mySelfId) return UI.showAlert("Matrix Error: Inject into the grid to use SOS.");
+                const me = STATE.group.find(p => p.id === STATE.mySelfId);
+                if(me) {
+                    socket.emit('triggerSOS', { name: me.name, lat: me.lat, lon: me.lon, height: me.height, isManDown: false });
+                    AudioEngine.trigger(false);
+                    transmitNtfyAlert(`🚨 SOS: ${me.name}`, `${me.name} triggered SOS!`, "sos,rotating_light", me.lat, me.lon);
+                }
+            });
+
+            // Boot Setup
+            const trySetVal = (id, val) => { const el = Utils.safeGetDOM(id); if (el && val !== undefined) el.value = val; };
+            trySetVal("limitInput", localSettings.limit);
+            trySetVal("dropInput", localSettings.dropThreshold);
+            trySetVal("windowInput", localSettings.dropWindow);
+            trySetVal("floorInput", localSettings.floorHeight);
+            trySetVal("ntfyTopicInput", localSettings.ntfyTopic);
+            trySetVal("geofenceRadiusInput", localSettings.geofenceRadius || CONFIG.DEFAULT_GEOFENCE);
+            trySetVal("manDownInput", localSettings.manDownTimer || CONFIG.DEFAULT_MANDOWN);
+            
+            initBarometer();
+            
+            // Barometer Hardware API fallback check
+            if (!("Barometer" in window)) {
+                console.log("Hardware: Barometer API not supported. Falling back to GPS Z-Axis only.");
+            }
+        })();
+    </script>
+</body>
+</html>
