@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: altiguard
+      POSTGRES_PASSWORD: altiguard
+      POSTGRES_DB: altiguard
+    ports:
+      - "5432:5432"
+    volumes:
+      - altiguard_pg:/var/lib/postgresql/data
+volumes:
+  altiguard_pg:

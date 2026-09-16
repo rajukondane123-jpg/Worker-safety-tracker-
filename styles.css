@@ -1,0 +1,1301 @@
+/* ALTIGUARD visual system — responsive command center */
+:root{--bg:#050b13;--panel:#0b1420;--panel2:#0f1b29;--line:#1b2b3d;--text:#e8f0f7;--muted:#8294a7;--cyan:#5be7ff;--green:#55f6bd;--red:#ff5370;--amber:#ffc857;--purple:#9b7bff;--shadow:0 18px 60px rgba(0,0,0,.28);--radius:16px;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}html[data-theme=day]{--bg:#eef3f7;--panel:#fff;--panel2:#f5f8fa;--line:#dbe4eb;--text:#12202e;--muted:#647486;--shadow:0 12px 35px rgba(19,38,55,.12)}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 30% 0,#102033 0,#050b13 42%);color:var(--text);min-height:100vh}html[data-theme=day] body{background:#eef3f7}button,input,textarea,select{font:inherit}button{cursor:pointer}.topbar{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:rgba(5,11,19,.86);backdrop-filter:blur(16px);position:sticky;top:0;z-index:1000}.brand{display:flex;gap:12px;align-items:center}.brand-mark{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#04101a;font-weight:900;box-shadow:0 0 25px rgba(91,231,255,.22)}.brand b{display:block;letter-spacing:.18em}.brand span{display:block;color:var(--muted);font-size:9px;letter-spacing:.18em;margin-top:2px}.top-actions{display:flex;gap:9px;align-items:center}.badge{font-size:10px;font-weight:800;letter-spacing:.1em;padding:7px 10px;border:1px solid var(--line);border-radius:999px}.badge.ok{color:var(--green);border-color:#245846;background:#0c251d}.badge.warn{color:var(--amber)}.badge.danger{color:var(--red);background:#2b0f17}.layout{display:grid;grid-template-columns:245px minmax(0,1fr);min-height:calc(100vh - 72px)}.sidebar{border-right:1px solid var(--line);padding:18px;background:rgba(5,11,19,.72)}.panel{background:linear-gradient(180deg,rgba(255,255,255,.025),transparent),var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.sidebar .panel{margin-bottom:14px;padding:14px}.panel-title,.eyebrow{font-size:9px;font-weight:900;letter-spacing:.16em;color:var(--muted)}.operator-row{display:flex;gap:10px;align-items:center;margin-top:14px}.avatar,.worker-avatar{display:grid;place-items:center;background:linear-gradient(135deg,#173148,#132334);border:1px solid #29445d;color:var(--cyan);font-weight:800}.avatar{width:36px;height:36px;border-radius:10px}.operator-row b{display:block;font-size:12px}.operator-row small,.worker-name small{display:block;color:var(--muted);font-size:9px;margin-top:3px}.nav{width:100%;border:0;background:transparent;color:var(--muted);text-align:left;padding:11px 10px;border-radius:10px;margin-top:4px}.nav:hover,.nav.active{background:var(--panel2);color:var(--text)}.nav.active{box-shadow:inset 2px 0 var(--cyan)}.engine-row{display:grid;grid-template-columns:9px 1fr auto;gap:7px;align-items:center;margin-top:12px;font-size:10px}.engine-row b{font-size:9px;color:var(--green)}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}.content{padding:22px;min-width:0}.view{display:none}.view.active{display:block}.hero,.page-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:18px}.hero h1,.page-head h2{margin:5px 0 7px;font-size:30px;letter-spacing:-.04em}.hero p,.page-head p{max-width:680px;color:var(--muted);margin:0;line-height:1.55}.btn{border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);padding:10px 14px;font-weight:800;font-size:11px;letter-spacing:.04em}.btn:hover{border-color:#3b5a76;transform:translateY(-1px)}.btn.primary{background:linear-gradient(135deg,#56e8ff,#7f8dff);border-color:transparent;color:#06111c}.btn.ghost{background:transparent}.btn.small{padding:7px 10px;font-size:9px}.danger-btn{color:#fff;background:#561826;border-color:#8b2a3f}.icon-btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);width:34px;height:34px;border-radius:9px}.text-btn{background:none;border:0;color:var(--cyan);font-size:10px;font-weight:800}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}.stat-card{display:flex;align-items:center;gap:13px;padding:15px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}.stat-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--panel2);color:var(--cyan);font-size:16px}.stat-card span,.stat-card small{display:block;color:var(--muted);font-size:9px}.stat-card strong{display:block;font-size:23px;margin:2px 0}.stat-card.good strong{color:var(--green)}.stat-card.critical strong{color:var(--red)}.grid-main{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(300px,.7fr);gap:14px}.grid-bottom{display:grid;grid-template-columns:1.5fr .7fr;gap:14px;margin-top:14px}.map-panel{overflow:hidden}.panel-head{min-height:54px;padding:13px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}.panel-head b{font-size:10px;letter-spacing:.1em}.panel-head small{display:block;color:var(--muted);font-size:9px;margin-top:3px}.map-tools{display:flex;gap:6px;flex-wrap:wrap}#map{height:560px;background:#0a1118}.leaflet-container{font-family:inherit}.leaflet-control-zoom a{background:var(--panel)!important;color:var(--text)!important;border-color:var(--line)!important}.worker-marker-wrap{background:transparent;border:0}.worker-marker{width:20px;height:20px;border-radius:50%;border:2px solid var(--marker);box-shadow:0 0 0 5px color-mix(in srgb,var(--marker) 15%,transparent),0 0 18px color-mix(in srgb,var(--marker) 45%,transparent);background:#06111b;display:grid;place-items:center}.worker-marker span{width:6px;height:6px;border-radius:50%;background:var(--marker)}.popup{min-width:190px;color:#182838;font-size:11px}.popup b{display:block;font-size:14px}.popup span{color:#68798b}.popup hr{border:0;border-top:1px solid #e2e8ed}.popup div{display:flex;justify-content:space-between;margin:5px 0}.popup-btn{width:100%;border:0;background:#10263a;color:#fff;padding:7px;border-radius:6px;font-size:9px;font-weight:800}.side-feed{overflow:hidden}.feed{max-height:560px;overflow:auto}.incident{padding:12px 14px;border-bottom:1px solid var(--line)}.incident-line{display:flex;gap:7px;align-items:center}.incident-line b{font-size:10px;flex:1}.incident-line time{font-size:9px;color:var(--muted)}.incident p{font-size:10px;line-height:1.45;color:var(--muted);margin:6px 0}.incident-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:9px}.severity-dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}.severity-dot.critical{background:var(--red);box-shadow:0 0 9px var(--red)}.severity-dot.high{background:#ff8c42}.severity-dot.normal{background:var(--green)}textarea{width:100%;min-height:135px;resize:vertical;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:12px;outline:none}.broadcast-actions{display:flex;gap:7px;margin-top:8px}.broadcast-actions select{max-width:130px}.worker-head,.worker-row{display:grid;grid-template-columns:2.2fr .8fr .7fr .8fr .6fr .6fr .6fr 34px;gap:8px;align-items:center}.worker-head{padding:9px 12px;color:var(--muted);font-size:8px;letter-spacing:.12em;border-bottom:1px solid var(--line)}.worker-row{padding:10px 12px;border-bottom:1px solid var(--line);font-size:10px}.worker-row:hover{background:var(--panel2)}.worker-name{display:flex;gap:8px;align-items:center;min-width:0}.worker-name b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.worker-avatar{width:28px;height:28px;border-radius:8px;font-size:10px;flex:none}.status{font-size:8px;font-weight:900;letter-spacing:.08em}.status.online{color:var(--green)}.status.stale{color:var(--amber)}.status.offline{color:var(--red)}.delta.down{color:var(--red)}.page-head{align-items:flex-end}.page-head h2{font-size:26px}.toolbar{display:flex;gap:8px;padding:14px;border-bottom:1px solid var(--line)}.input{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:10px 11px;outline:none}.toolbar .input{min-width:200px}.incident-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:14px}.incident-card{border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:12px;padding:14px;background:var(--panel2)}.incident-card.critical{border-left-color:var(--red)}.incident-card.high{border-left-color:#ff8c42}.card-top{display:flex;justify-content:space-between;align-items:center}.card-top time{font-size:9px;color:var(--muted)}.severity-chip{display:inline-block;font-size:8px;font-weight:900;letter-spacing:.1em;border:1px solid var(--line);padding:5px 7px;border-radius:999px}.severity-chip.critical{color:var(--red);border-color:#6f2637;background:#260e15}.severity-chip.high{color:#ff9a52}.severity-chip.warning{color:var(--amber)}.incident-card h3{font-size:14px;margin:12px 0 6px}.incident-card p{font-size:10px;color:var(--muted);line-height:1.5}.incident-card dl{display:grid;grid-template-columns:80px 1fr;gap:5px;font-size:9px}.incident-card dt{color:var(--muted)}.incident-card dd{margin:0}.card-actions{display:flex;gap:6px;margin-top:13px}.filter-pills{display:flex;gap:5px}.pill{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:7px 10px;font-size:9px}.pill.active{color:var(--text);background:var(--panel2)}.zone-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.zone-card{display:grid;grid-template-columns:38px 1fr 34px;gap:10px;align-items:start;padding:12px;border:1px solid var(--line);background:var(--panel2);border-radius:12px}.zone-shape{width:34px;height:34px;border:2px solid var(--red);background:rgba(255,83,112,.1);transform:rotate(45deg);border-radius:5px}.zone-card b{display:block;font-size:12px}.zone-card small{color:var(--red);font-size:8px}.zone-card p{font-size:9px;color:var(--muted);line-height:1.4}.danger-icon{color:var(--red)}.analytics-grid,.system-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.analytics-grid>.panel,.system-grid>.panel{padding:16px}.metric-large{display:inline-flex;flex-direction:column;min-width:45%;padding:14px}.metric-large span,.metric-large small{color:var(--muted);font-size:9px}.metric-large strong{font-size:30px;margin:5px 0}.chart-placeholder{height:190px;display:grid;place-items:center;color:var(--muted);font-size:11px}.bars{padding:15px}.bar-row{display:grid;grid-template-columns:170px 1fr 30px;gap:10px;align-items:center;margin:10px 0;font-size:9px}.bar-row div{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden}.bar-row i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:99px}.broadcast-composer{padding:16px}.broadcast-composer>div{display:flex;gap:8px;margin-top:8px}.broadcast-list{padding:0 15px}.broadcast-list article{display:grid;grid-template-columns:90px 1fr 150px;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);align-items:center}.broadcast-list p{margin:0;font-size:11px}.broadcast-list time{font-size:9px;color:var(--muted);text-align:right}.notice{margin:14px;padding:11px;border:1px solid #31506a;background:#0d1d2c;border-radius:10px;color:var(--muted);font-size:10px;line-height:1.5}.floor-form{display:grid;grid-template-columns:2fr 3fr repeat(4,1fr) auto;gap:8px;padding:14px}.settings-list{display:grid;gap:12px}.settings-list label{display:grid;gap:5px;color:var(--muted);font-size:10px}.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);z-index:3000;display:grid;place-items:center;padding:20px}.modal{width:min(720px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 30px 100px #0008;padding:18px}.modal.compact{width:min(520px,100%)}.modal-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.modal-head h2{margin:5px 0;font-size:22px}.modal-head p{color:var(--muted);font-size:10px}.profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:15px 0}.profile-stat{padding:12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px}.profile-stat span{display:block;color:var(--muted);font-size:8px}.profile-stat b{display:block;margin-top:5px;font-size:15px}.telemetry-mini{border:1px solid var(--line);border-radius:10px;padding:12px}.telemetry-mini>div{max-height:160px;overflow:auto;margin-top:8px}.telemetry-mini span{display:block;color:var(--muted);font-size:9px;padding:5px 0;border-bottom:1px solid var(--line)}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.form-grid .btn{grid-column:1/-1}.toast-stack{position:fixed;right:18px;bottom:18px;z-index:5000;display:grid;gap:8px;max-width:min(420px,calc(100vw - 36px))}.toast{display:flex;gap:10px;align-items:center;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#0c1724ee;box-shadow:var(--shadow);font-size:10px}.toast b{font-size:8px;color:var(--cyan)}.toast.success b{color:var(--green)}.toast.error b{color:var(--red)}.toast.warning b{color:var(--amber)}.command-overlay{position:fixed;inset:0;display:grid;place-items:center;background:#000b;z-index:4500;padding:20px}.command-overlay>div{width:min(800px,100%);padding:35px;text-align:center;border:2px solid var(--cyan);background:#071522;box-shadow:0 0 80px rgba(91,231,255,.18);border-radius:20px}.command-overlay span{display:block;color:var(--cyan);font-size:10px;letter-spacing:.2em;font-weight:900}.command-overlay strong{display:block;font-size:32px;margin:18px 0;line-height:1.2}.command-overlay button{border:1px solid var(--cyan);background:transparent;color:#fff;border-radius:10px;padding:11px 20px;font-weight:900}.command-overlay.critical>div{border-color:var(--red)}.command-overlay.critical span{color:var(--red)}.empty{padding:25px;text-align:center;color:var(--muted);font-size:10px}.worker-list-table{overflow:auto}dl{display:grid;grid-template-columns:90px 1fr;gap:7px;font-size:10px}dt{color:var(--muted)}dd{margin:0}.active{outline:none}@media(max-width:1100px){.layout{grid-template-columns:75px 1fr}.sidebar{padding:12px 8px}.sidebar .panel:not(:first-child) .panel-title,.sidebar .panel:not(:first-child) .engine-row span,.sidebar .panel:not(:first-child) .engine-row b,.operator-row>div:last-child{display:none}.operator-row{justify-content:center}.nav{font-size:0;text-align:center}.nav::first-letter{font-size:16px}.stats{grid-template-columns:repeat(2,1fr)}.grid-main,.grid-bottom,.analytics-grid,.system-grid{grid-template-columns:1fr}.side-feed{min-height:300px}.zone-grid,.incident-grid{grid-template-columns:1fr}.floor-form{grid-template-columns:1fr 1fr}.floor-form .btn{grid-column:1/-1}}
+@media(max-width:700px){.topbar{padding:0 12px}.brand span{display:none}.content{padding:12px}.hero,.page-head{display:block}.hero .btn,.page-head .btn{margin-top:12px}.stats{grid-template-columns:1fr 1fr;gap:7px}.stat-card{padding:10px}.stat-card strong{font-size:18px}.stat-icon{display:none}.grid-bottom{gap:8px}#map{height:430px}.worker-head,.worker-row{grid-template-columns:2fr .7fr .7fr 34px}.worker-head span:nth-child(4),.worker-head span:nth-child(5),.worker-head span:nth-child(6),.worker-head span:nth-child(7),.worker-row>span:nth-of-type(3),.worker-row>span:nth-of-type(4),.worker-row>span:nth-of-type(5),.worker-row>span:nth-of-type(6){display:none}.incident-grid{padding:8px}.profile-grid{grid-template-columns:1fr 1fr}.floor-form{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.broadcast-list article{grid-template-columns:1fr}.broadcast-list time{text-align:left}.layout{grid-template-columns:1fr}.sidebar{display:none}.top-actions .btn.ghost{display:none}.hero h1,.page-head h2{font-size:24px}}
+/* UI token 001 · map */
+.ui-map-001{contain:layout paint;}
+/* UI token 002 · worker */
+.ui-worker-002{contain:layout paint;}
+/* UI token 003 · incident */
+.ui-incident-003{contain:layout paint;}
+/* UI token 004 · zone */
+.ui-zone-004{contain:layout paint;}
+/* UI token 005 · analytics */
+.ui-analytics-005{contain:layout paint;}
+/* UI token 006 · broadcast */
+.ui-broadcast-006{contain:layout paint;}
+/* UI token 007 · floorplan */
+.ui-floorplan-007{contain:layout paint;}
+/* UI token 008 · system */
+.ui-system-008{contain:layout paint;}
+/* UI token 009 · modal */
+.ui-modal-009{contain:layout paint;}
+/* UI token 010 · toast */
+.ui-toast-010{contain:layout paint;}
+/* UI token 011 · command */
+.ui-command-011{contain:layout paint;}
+/* UI token 012 · table */
+.ui-table-012{contain:layout paint;}
+/* UI token 013 · profile */
+.ui-profile-013{contain:layout paint;}
+/* UI token 014 · telemetry */
+.ui-telemetry-014{contain:layout paint;}
+/* UI token 015 · status */
+.ui-status-015{contain:layout paint;}
+/* UI token 016 · mobile */
+.ui-mobile-016{contain:layout paint;}
+/* UI token 017 · desktop */
+.ui-desktop-017{contain:layout paint;}
+/* UI token 018 · accessibility */
+.ui-accessibility-018{contain:layout paint;}
+/* UI token 019 · print */
+.ui-print-019{contain:layout paint;}
+/* UI token 020 · shell */
+.ui-shell-020{contain:layout paint;}
+/* UI token 021 · map */
+.ui-map-021{contain:layout paint;}
+/* UI token 022 · worker */
+.ui-worker-022{contain:layout paint;}
+/* UI token 023 · incident */
+.ui-incident-023{contain:layout paint;}
+/* UI token 024 · zone */
+.ui-zone-024{contain:layout paint;}
+/* UI token 025 · analytics */
+.ui-analytics-025{contain:layout paint;}
+/* UI token 026 · broadcast */
+.ui-broadcast-026{contain:layout paint;}
+/* UI token 027 · floorplan */
+.ui-floorplan-027{contain:layout paint;}
+/* UI token 028 · system */
+.ui-system-028{contain:layout paint;}
+/* UI token 029 · modal */
+.ui-modal-029{contain:layout paint;}
+/* UI token 030 · toast */
+.ui-toast-030{contain:layout paint;}
+/* UI token 031 · command */
+.ui-command-031{contain:layout paint;}
+/* UI token 032 · table */
+.ui-table-032{contain:layout paint;}
+/* UI token 033 · profile */
+.ui-profile-033{contain:layout paint;}
+/* UI token 034 · telemetry */
+.ui-telemetry-034{contain:layout paint;}
+/* UI token 035 · status */
+.ui-status-035{contain:layout paint;}
+/* UI token 036 · mobile */
+.ui-mobile-036{contain:layout paint;}
+/* UI token 037 · desktop */
+.ui-desktop-037{contain:layout paint;}
+/* UI token 038 · accessibility */
+.ui-accessibility-038{contain:layout paint;}
+/* UI token 039 · print */
+.ui-print-039{contain:layout paint;}
+/* UI token 040 · shell */
+.ui-shell-040{contain:layout paint;}
+/* UI token 041 · map */
+.ui-map-041{contain:layout paint;}
+/* UI token 042 · worker */
+.ui-worker-042{contain:layout paint;}
+/* UI token 043 · incident */
+.ui-incident-043{contain:layout paint;}
+/* UI token 044 · zone */
+.ui-zone-044{contain:layout paint;}
+/* UI token 045 · analytics */
+.ui-analytics-045{contain:layout paint;}
+/* UI token 046 · broadcast */
+.ui-broadcast-046{contain:layout paint;}
+/* UI token 047 · floorplan */
+.ui-floorplan-047{contain:layout paint;}
+/* UI token 048 · system */
+.ui-system-048{contain:layout paint;}
+/* UI token 049 · modal */
+.ui-modal-049{contain:layout paint;}
+/* UI token 050 · toast */
+.ui-toast-050{contain:layout paint;}
+/* UI token 051 · command */
+.ui-command-051{contain:layout paint;}
+/* UI token 052 · table */
+.ui-table-052{contain:layout paint;}
+/* UI token 053 · profile */
+.ui-profile-053{contain:layout paint;}
+/* UI token 054 · telemetry */
+.ui-telemetry-054{contain:layout paint;}
+/* UI token 055 · status */
+.ui-status-055{contain:layout paint;}
+/* UI token 056 · mobile */
+.ui-mobile-056{contain:layout paint;}
+/* UI token 057 · desktop */
+.ui-desktop-057{contain:layout paint;}
+/* UI token 058 · accessibility */
+.ui-accessibility-058{contain:layout paint;}
+/* UI token 059 · print */
+.ui-print-059{contain:layout paint;}
+/* UI token 060 · shell */
+.ui-shell-060{contain:layout paint;}
+/* UI token 061 · map */
+.ui-map-061{contain:layout paint;}
+/* UI token 062 · worker */
+.ui-worker-062{contain:layout paint;}
+/* UI token 063 · incident */
+.ui-incident-063{contain:layout paint;}
+/* UI token 064 · zone */
+.ui-zone-064{contain:layout paint;}
+/* UI token 065 · analytics */
+.ui-analytics-065{contain:layout paint;}
+/* UI token 066 · broadcast */
+.ui-broadcast-066{contain:layout paint;}
+/* UI token 067 · floorplan */
+.ui-floorplan-067{contain:layout paint;}
+/* UI token 068 · system */
+.ui-system-068{contain:layout paint;}
+/* UI token 069 · modal */
+.ui-modal-069{contain:layout paint;}
+/* UI token 070 · toast */
+.ui-toast-070{contain:layout paint;}
+/* UI token 071 · command */
+.ui-command-071{contain:layout paint;}
+/* UI token 072 · table */
+.ui-table-072{contain:layout paint;}
+/* UI token 073 · profile */
+.ui-profile-073{contain:layout paint;}
+/* UI token 074 · telemetry */
+.ui-telemetry-074{contain:layout paint;}
+/* UI token 075 · status */
+.ui-status-075{contain:layout paint;}
+/* UI token 076 · mobile */
+.ui-mobile-076{contain:layout paint;}
+/* UI token 077 · desktop */
+.ui-desktop-077{contain:layout paint;}
+/* UI token 078 · accessibility */
+.ui-accessibility-078{contain:layout paint;}
+/* UI token 079 · print */
+.ui-print-079{contain:layout paint;}
+/* UI token 080 · shell */
+.ui-shell-080{contain:layout paint;}
+/* UI token 081 · map */
+.ui-map-081{contain:layout paint;}
+/* UI token 082 · worker */
+.ui-worker-082{contain:layout paint;}
+/* UI token 083 · incident */
+.ui-incident-083{contain:layout paint;}
+/* UI token 084 · zone */
+.ui-zone-084{contain:layout paint;}
+/* UI token 085 · analytics */
+.ui-analytics-085{contain:layout paint;}
+/* UI token 086 · broadcast */
+.ui-broadcast-086{contain:layout paint;}
+/* UI token 087 · floorplan */
+.ui-floorplan-087{contain:layout paint;}
+/* UI token 088 · system */
+.ui-system-088{contain:layout paint;}
+/* UI token 089 · modal */
+.ui-modal-089{contain:layout paint;}
+/* UI token 090 · toast */
+.ui-toast-090{contain:layout paint;}
+/* UI token 091 · command */
+.ui-command-091{contain:layout paint;}
+/* UI token 092 · table */
+.ui-table-092{contain:layout paint;}
+/* UI token 093 · profile */
+.ui-profile-093{contain:layout paint;}
+/* UI token 094 · telemetry */
+.ui-telemetry-094{contain:layout paint;}
+/* UI token 095 · status */
+.ui-status-095{contain:layout paint;}
+/* UI token 096 · mobile */
+.ui-mobile-096{contain:layout paint;}
+/* UI token 097 · desktop */
+.ui-desktop-097{contain:layout paint;}
+/* UI token 098 · accessibility */
+.ui-accessibility-098{contain:layout paint;}
+/* UI token 099 · print */
+.ui-print-099{contain:layout paint;}
+/* UI token 100 · shell */
+.ui-shell-100{contain:layout paint;}
+/* UI token 101 · map */
+.ui-map-101{contain:layout paint;}
+/* UI token 102 · worker */
+.ui-worker-102{contain:layout paint;}
+/* UI token 103 · incident */
+.ui-incident-103{contain:layout paint;}
+/* UI token 104 · zone */
+.ui-zone-104{contain:layout paint;}
+/* UI token 105 · analytics */
+.ui-analytics-105{contain:layout paint;}
+/* UI token 106 · broadcast */
+.ui-broadcast-106{contain:layout paint;}
+/* UI token 107 · floorplan */
+.ui-floorplan-107{contain:layout paint;}
+/* UI token 108 · system */
+.ui-system-108{contain:layout paint;}
+/* UI token 109 · modal */
+.ui-modal-109{contain:layout paint;}
+/* UI token 110 · toast */
+.ui-toast-110{contain:layout paint;}
+/* UI token 111 · command */
+.ui-command-111{contain:layout paint;}
+/* UI token 112 · table */
+.ui-table-112{contain:layout paint;}
+/* UI token 113 · profile */
+.ui-profile-113{contain:layout paint;}
+/* UI token 114 · telemetry */
+.ui-telemetry-114{contain:layout paint;}
+/* UI token 115 · status */
+.ui-status-115{contain:layout paint;}
+/* UI token 116 · mobile */
+.ui-mobile-116{contain:layout paint;}
+/* UI token 117 · desktop */
+.ui-desktop-117{contain:layout paint;}
+/* UI token 118 · accessibility */
+.ui-accessibility-118{contain:layout paint;}
+/* UI token 119 · print */
+.ui-print-119{contain:layout paint;}
+/* UI token 120 · shell */
+.ui-shell-120{contain:layout paint;}
+/* UI token 121 · map */
+.ui-map-121{contain:layout paint;}
+/* UI token 122 · worker */
+.ui-worker-122{contain:layout paint;}
+/* UI token 123 · incident */
+.ui-incident-123{contain:layout paint;}
+/* UI token 124 · zone */
+.ui-zone-124{contain:layout paint;}
+/* UI token 125 · analytics */
+.ui-analytics-125{contain:layout paint;}
+/* UI token 126 · broadcast */
+.ui-broadcast-126{contain:layout paint;}
+/* UI token 127 · floorplan */
+.ui-floorplan-127{contain:layout paint;}
+/* UI token 128 · system */
+.ui-system-128{contain:layout paint;}
+/* UI token 129 · modal */
+.ui-modal-129{contain:layout paint;}
+/* UI token 130 · toast */
+.ui-toast-130{contain:layout paint;}
+/* UI token 131 · command */
+.ui-command-131{contain:layout paint;}
+/* UI token 132 · table */
+.ui-table-132{contain:layout paint;}
+/* UI token 133 · profile */
+.ui-profile-133{contain:layout paint;}
+/* UI token 134 · telemetry */
+.ui-telemetry-134{contain:layout paint;}
+/* UI token 135 · status */
+.ui-status-135{contain:layout paint;}
+/* UI token 136 · mobile */
+.ui-mobile-136{contain:layout paint;}
+/* UI token 137 · desktop */
+.ui-desktop-137{contain:layout paint;}
+/* UI token 138 · accessibility */
+.ui-accessibility-138{contain:layout paint;}
+/* UI token 139 · print */
+.ui-print-139{contain:layout paint;}
+/* UI token 140 · shell */
+.ui-shell-140{contain:layout paint;}
+/* UI token 141 · map */
+.ui-map-141{contain:layout paint;}
+/* UI token 142 · worker */
+.ui-worker-142{contain:layout paint;}
+/* UI token 143 · incident */
+.ui-incident-143{contain:layout paint;}
+/* UI token 144 · zone */
+.ui-zone-144{contain:layout paint;}
+/* UI token 145 · analytics */
+.ui-analytics-145{contain:layout paint;}
+/* UI token 146 · broadcast */
+.ui-broadcast-146{contain:layout paint;}
+/* UI token 147 · floorplan */
+.ui-floorplan-147{contain:layout paint;}
+/* UI token 148 · system */
+.ui-system-148{contain:layout paint;}
+/* UI token 149 · modal */
+.ui-modal-149{contain:layout paint;}
+/* UI token 150 · toast */
+.ui-toast-150{contain:layout paint;}
+/* UI token 151 · command */
+.ui-command-151{contain:layout paint;}
+/* UI token 152 · table */
+.ui-table-152{contain:layout paint;}
+/* UI token 153 · profile */
+.ui-profile-153{contain:layout paint;}
+/* UI token 154 · telemetry */
+.ui-telemetry-154{contain:layout paint;}
+/* UI token 155 · status */
+.ui-status-155{contain:layout paint;}
+/* UI token 156 · mobile */
+.ui-mobile-156{contain:layout paint;}
+/* UI token 157 · desktop */
+.ui-desktop-157{contain:layout paint;}
+/* UI token 158 · accessibility */
+.ui-accessibility-158{contain:layout paint;}
+/* UI token 159 · print */
+.ui-print-159{contain:layout paint;}
+/* UI token 160 · shell */
+.ui-shell-160{contain:layout paint;}
+/* UI token 161 · map */
+.ui-map-161{contain:layout paint;}
+/* UI token 162 · worker */
+.ui-worker-162{contain:layout paint;}
+/* UI token 163 · incident */
+.ui-incident-163{contain:layout paint;}
+/* UI token 164 · zone */
+.ui-zone-164{contain:layout paint;}
+/* UI token 165 · analytics */
+.ui-analytics-165{contain:layout paint;}
+/* UI token 166 · broadcast */
+.ui-broadcast-166{contain:layout paint;}
+/* UI token 167 · floorplan */
+.ui-floorplan-167{contain:layout paint;}
+/* UI token 168 · system */
+.ui-system-168{contain:layout paint;}
+/* UI token 169 · modal */
+.ui-modal-169{contain:layout paint;}
+/* UI token 170 · toast */
+.ui-toast-170{contain:layout paint;}
+/* UI token 171 · command */
+.ui-command-171{contain:layout paint;}
+/* UI token 172 · table */
+.ui-table-172{contain:layout paint;}
+/* UI token 173 · profile */
+.ui-profile-173{contain:layout paint;}
+/* UI token 174 · telemetry */
+.ui-telemetry-174{contain:layout paint;}
+/* UI token 175 · status */
+.ui-status-175{contain:layout paint;}
+/* UI token 176 · mobile */
+.ui-mobile-176{contain:layout paint;}
+/* UI token 177 · desktop */
+.ui-desktop-177{contain:layout paint;}
+/* UI token 178 · accessibility */
+.ui-accessibility-178{contain:layout paint;}
+/* UI token 179 · print */
+.ui-print-179{contain:layout paint;}
+/* UI token 180 · shell */
+.ui-shell-180{contain:layout paint;}
+/* UI token 181 · map */
+.ui-map-181{contain:layout paint;}
+/* UI token 182 · worker */
+.ui-worker-182{contain:layout paint;}
+/* UI token 183 · incident */
+.ui-incident-183{contain:layout paint;}
+/* UI token 184 · zone */
+.ui-zone-184{contain:layout paint;}
+/* UI token 185 · analytics */
+.ui-analytics-185{contain:layout paint;}
+/* UI token 186 · broadcast */
+.ui-broadcast-186{contain:layout paint;}
+/* UI token 187 · floorplan */
+.ui-floorplan-187{contain:layout paint;}
+/* UI token 188 · system */
+.ui-system-188{contain:layout paint;}
+/* UI token 189 · modal */
+.ui-modal-189{contain:layout paint;}
+/* UI token 190 · toast */
+.ui-toast-190{contain:layout paint;}
+/* UI token 191 · command */
+.ui-command-191{contain:layout paint;}
+/* UI token 192 · table */
+.ui-table-192{contain:layout paint;}
+/* UI token 193 · profile */
+.ui-profile-193{contain:layout paint;}
+/* UI token 194 · telemetry */
+.ui-telemetry-194{contain:layout paint;}
+/* UI token 195 · status */
+.ui-status-195{contain:layout paint;}
+/* UI token 196 · mobile */
+.ui-mobile-196{contain:layout paint;}
+/* UI token 197 · desktop */
+.ui-desktop-197{contain:layout paint;}
+/* UI token 198 · accessibility */
+.ui-accessibility-198{contain:layout paint;}
+/* UI token 199 · print */
+.ui-print-199{contain:layout paint;}
+/* UI token 200 · shell */
+.ui-shell-200{contain:layout paint;}
+/* UI token 201 · map */
+.ui-map-201{contain:layout paint;}
+/* UI token 202 · worker */
+.ui-worker-202{contain:layout paint;}
+/* UI token 203 · incident */
+.ui-incident-203{contain:layout paint;}
+/* UI token 204 · zone */
+.ui-zone-204{contain:layout paint;}
+/* UI token 205 · analytics */
+.ui-analytics-205{contain:layout paint;}
+/* UI token 206 · broadcast */
+.ui-broadcast-206{contain:layout paint;}
+/* UI token 207 · floorplan */
+.ui-floorplan-207{contain:layout paint;}
+/* UI token 208 · system */
+.ui-system-208{contain:layout paint;}
+/* UI token 209 · modal */
+.ui-modal-209{contain:layout paint;}
+/* UI token 210 · toast */
+.ui-toast-210{contain:layout paint;}
+/* UI token 211 · command */
+.ui-command-211{contain:layout paint;}
+/* UI token 212 · table */
+.ui-table-212{contain:layout paint;}
+/* UI token 213 · profile */
+.ui-profile-213{contain:layout paint;}
+/* UI token 214 · telemetry */
+.ui-telemetry-214{contain:layout paint;}
+/* UI token 215 · status */
+.ui-status-215{contain:layout paint;}
+/* UI token 216 · mobile */
+.ui-mobile-216{contain:layout paint;}
+/* UI token 217 · desktop */
+.ui-desktop-217{contain:layout paint;}
+/* UI token 218 · accessibility */
+.ui-accessibility-218{contain:layout paint;}
+/* UI token 219 · print */
+.ui-print-219{contain:layout paint;}
+/* UI token 220 · shell */
+.ui-shell-220{contain:layout paint;}
+/* UI token 221 · map */
+.ui-map-221{contain:layout paint;}
+/* UI token 222 · worker */
+.ui-worker-222{contain:layout paint;}
+/* UI token 223 · incident */
+.ui-incident-223{contain:layout paint;}
+/* UI token 224 · zone */
+.ui-zone-224{contain:layout paint;}
+/* UI token 225 · analytics */
+.ui-analytics-225{contain:layout paint;}
+/* UI token 226 · broadcast */
+.ui-broadcast-226{contain:layout paint;}
+/* UI token 227 · floorplan */
+.ui-floorplan-227{contain:layout paint;}
+/* UI token 228 · system */
+.ui-system-228{contain:layout paint;}
+/* UI token 229 · modal */
+.ui-modal-229{contain:layout paint;}
+/* UI token 230 · toast */
+.ui-toast-230{contain:layout paint;}
+/* UI token 231 · command */
+.ui-command-231{contain:layout paint;}
+/* UI token 232 · table */
+.ui-table-232{contain:layout paint;}
+/* UI token 233 · profile */
+.ui-profile-233{contain:layout paint;}
+/* UI token 234 · telemetry */
+.ui-telemetry-234{contain:layout paint;}
+/* UI token 235 · status */
+.ui-status-235{contain:layout paint;}
+/* UI token 236 · mobile */
+.ui-mobile-236{contain:layout paint;}
+/* UI token 237 · desktop */
+.ui-desktop-237{contain:layout paint;}
+/* UI token 238 · accessibility */
+.ui-accessibility-238{contain:layout paint;}
+/* UI token 239 · print */
+.ui-print-239{contain:layout paint;}
+/* UI token 240 · shell */
+.ui-shell-240{contain:layout paint;}
+/* UI token 241 · map */
+.ui-map-241{contain:layout paint;}
+/* UI token 242 · worker */
+.ui-worker-242{contain:layout paint;}
+/* UI token 243 · incident */
+.ui-incident-243{contain:layout paint;}
+/* UI token 244 · zone */
+.ui-zone-244{contain:layout paint;}
+/* UI token 245 · analytics */
+.ui-analytics-245{contain:layout paint;}
+/* UI token 246 · broadcast */
+.ui-broadcast-246{contain:layout paint;}
+/* UI token 247 · floorplan */
+.ui-floorplan-247{contain:layout paint;}
+/* UI token 248 · system */
+.ui-system-248{contain:layout paint;}
+/* UI token 249 · modal */
+.ui-modal-249{contain:layout paint;}
+/* UI token 250 · toast */
+.ui-toast-250{contain:layout paint;}
+/* UI token 251 · command */
+.ui-command-251{contain:layout paint;}
+/* UI token 252 · table */
+.ui-table-252{contain:layout paint;}
+/* UI token 253 · profile */
+.ui-profile-253{contain:layout paint;}
+/* UI token 254 · telemetry */
+.ui-telemetry-254{contain:layout paint;}
+/* UI token 255 · status */
+.ui-status-255{contain:layout paint;}
+/* UI token 256 · mobile */
+.ui-mobile-256{contain:layout paint;}
+/* UI token 257 · desktop */
+.ui-desktop-257{contain:layout paint;}
+/* UI token 258 · accessibility */
+.ui-accessibility-258{contain:layout paint;}
+/* UI token 259 · print */
+.ui-print-259{contain:layout paint;}
+/* UI token 260 · shell */
+.ui-shell-260{contain:layout paint;}
+/* UI token 261 · map */
+.ui-map-261{contain:layout paint;}
+/* UI token 262 · worker */
+.ui-worker-262{contain:layout paint;}
+/* UI token 263 · incident */
+.ui-incident-263{contain:layout paint;}
+/* UI token 264 · zone */
+.ui-zone-264{contain:layout paint;}
+/* UI token 265 · analytics */
+.ui-analytics-265{contain:layout paint;}
+/* UI token 266 · broadcast */
+.ui-broadcast-266{contain:layout paint;}
+/* UI token 267 · floorplan */
+.ui-floorplan-267{contain:layout paint;}
+/* UI token 268 · system */
+.ui-system-268{contain:layout paint;}
+/* UI token 269 · modal */
+.ui-modal-269{contain:layout paint;}
+/* UI token 270 · toast */
+.ui-toast-270{contain:layout paint;}
+/* UI token 271 · command */
+.ui-command-271{contain:layout paint;}
+/* UI token 272 · table */
+.ui-table-272{contain:layout paint;}
+/* UI token 273 · profile */
+.ui-profile-273{contain:layout paint;}
+/* UI token 274 · telemetry */
+.ui-telemetry-274{contain:layout paint;}
+/* UI token 275 · status */
+.ui-status-275{contain:layout paint;}
+/* UI token 276 · mobile */
+.ui-mobile-276{contain:layout paint;}
+/* UI token 277 · desktop */
+.ui-desktop-277{contain:layout paint;}
+/* UI token 278 · accessibility */
+.ui-accessibility-278{contain:layout paint;}
+/* UI token 279 · print */
+.ui-print-279{contain:layout paint;}
+/* UI token 280 · shell */
+.ui-shell-280{contain:layout paint;}
+/* UI token 281 · map */
+.ui-map-281{contain:layout paint;}
+/* UI token 282 · worker */
+.ui-worker-282{contain:layout paint;}
+/* UI token 283 · incident */
+.ui-incident-283{contain:layout paint;}
+/* UI token 284 · zone */
+.ui-zone-284{contain:layout paint;}
+/* UI token 285 · analytics */
+.ui-analytics-285{contain:layout paint;}
+/* UI token 286 · broadcast */
+.ui-broadcast-286{contain:layout paint;}
+/* UI token 287 · floorplan */
+.ui-floorplan-287{contain:layout paint;}
+/* UI token 288 · system */
+.ui-system-288{contain:layout paint;}
+/* UI token 289 · modal */
+.ui-modal-289{contain:layout paint;}
+/* UI token 290 · toast */
+.ui-toast-290{contain:layout paint;}
+/* UI token 291 · command */
+.ui-command-291{contain:layout paint;}
+/* UI token 292 · table */
+.ui-table-292{contain:layout paint;}
+/* UI token 293 · profile */
+.ui-profile-293{contain:layout paint;}
+/* UI token 294 · telemetry */
+.ui-telemetry-294{contain:layout paint;}
+/* UI token 295 · status */
+.ui-status-295{contain:layout paint;}
+/* UI token 296 · mobile */
+.ui-mobile-296{contain:layout paint;}
+/* UI token 297 · desktop */
+.ui-desktop-297{contain:layout paint;}
+/* UI token 298 · accessibility */
+.ui-accessibility-298{contain:layout paint;}
+/* UI token 299 · print */
+.ui-print-299{contain:layout paint;}
+/* UI token 300 · shell */
+.ui-shell-300{contain:layout paint;}
+/* UI token 301 · map */
+.ui-map-301{contain:layout paint;}
+/* UI token 302 · worker */
+.ui-worker-302{contain:layout paint;}
+/* UI token 303 · incident */
+.ui-incident-303{contain:layout paint;}
+/* UI token 304 · zone */
+.ui-zone-304{contain:layout paint;}
+/* UI token 305 · analytics */
+.ui-analytics-305{contain:layout paint;}
+/* UI token 306 · broadcast */
+.ui-broadcast-306{contain:layout paint;}
+/* UI token 307 · floorplan */
+.ui-floorplan-307{contain:layout paint;}
+/* UI token 308 · system */
+.ui-system-308{contain:layout paint;}
+/* UI token 309 · modal */
+.ui-modal-309{contain:layout paint;}
+/* UI token 310 · toast */
+.ui-toast-310{contain:layout paint;}
+/* UI token 311 · command */
+.ui-command-311{contain:layout paint;}
+/* UI token 312 · table */
+.ui-table-312{contain:layout paint;}
+/* UI token 313 · profile */
+.ui-profile-313{contain:layout paint;}
+/* UI token 314 · telemetry */
+.ui-telemetry-314{contain:layout paint;}
+/* UI token 315 · status */
+.ui-status-315{contain:layout paint;}
+/* UI token 316 · mobile */
+.ui-mobile-316{contain:layout paint;}
+/* UI token 317 · desktop */
+.ui-desktop-317{contain:layout paint;}
+/* UI token 318 · accessibility */
+.ui-accessibility-318{contain:layout paint;}
+/* UI token 319 · print */
+.ui-print-319{contain:layout paint;}
+/* UI token 320 · shell */
+.ui-shell-320{contain:layout paint;}
+/* UI token 321 · map */
+.ui-map-321{contain:layout paint;}
+/* UI token 322 · worker */
+.ui-worker-322{contain:layout paint;}
+/* UI token 323 · incident */
+.ui-incident-323{contain:layout paint;}
+/* UI token 324 · zone */
+.ui-zone-324{contain:layout paint;}
+/* UI token 325 · analytics */
+.ui-analytics-325{contain:layout paint;}
+/* UI token 326 · broadcast */
+.ui-broadcast-326{contain:layout paint;}
+/* UI token 327 · floorplan */
+.ui-floorplan-327{contain:layout paint;}
+/* UI token 328 · system */
+.ui-system-328{contain:layout paint;}
+/* UI token 329 · modal */
+.ui-modal-329{contain:layout paint;}
+/* UI token 330 · toast */
+.ui-toast-330{contain:layout paint;}
+/* UI token 331 · command */
+.ui-command-331{contain:layout paint;}
+/* UI token 332 · table */
+.ui-table-332{contain:layout paint;}
+/* UI token 333 · profile */
+.ui-profile-333{contain:layout paint;}
+/* UI token 334 · telemetry */
+.ui-telemetry-334{contain:layout paint;}
+/* UI token 335 · status */
+.ui-status-335{contain:layout paint;}
+/* UI token 336 · mobile */
+.ui-mobile-336{contain:layout paint;}
+/* UI token 337 · desktop */
+.ui-desktop-337{contain:layout paint;}
+/* UI token 338 · accessibility */
+.ui-accessibility-338{contain:layout paint;}
+/* UI token 339 · print */
+.ui-print-339{contain:layout paint;}
+/* UI token 340 · shell */
+.ui-shell-340{contain:layout paint;}
+/* UI token 341 · map */
+.ui-map-341{contain:layout paint;}
+/* UI token 342 · worker */
+.ui-worker-342{contain:layout paint;}
+/* UI token 343 · incident */
+.ui-incident-343{contain:layout paint;}
+/* UI token 344 · zone */
+.ui-zone-344{contain:layout paint;}
+/* UI token 345 · analytics */
+.ui-analytics-345{contain:layout paint;}
+/* UI token 346 · broadcast */
+.ui-broadcast-346{contain:layout paint;}
+/* UI token 347 · floorplan */
+.ui-floorplan-347{contain:layout paint;}
+/* UI token 348 · system */
+.ui-system-348{contain:layout paint;}
+/* UI token 349 · modal */
+.ui-modal-349{contain:layout paint;}
+/* UI token 350 · toast */
+.ui-toast-350{contain:layout paint;}
+/* UI token 351 · command */
+.ui-command-351{contain:layout paint;}
+/* UI token 352 · table */
+.ui-table-352{contain:layout paint;}
+/* UI token 353 · profile */
+.ui-profile-353{contain:layout paint;}
+/* UI token 354 · telemetry */
+.ui-telemetry-354{contain:layout paint;}
+/* UI token 355 · status */
+.ui-status-355{contain:layout paint;}
+/* UI token 356 · mobile */
+.ui-mobile-356{contain:layout paint;}
+/* UI token 357 · desktop */
+.ui-desktop-357{contain:layout paint;}
+/* UI token 358 · accessibility */
+.ui-accessibility-358{contain:layout paint;}
+/* UI token 359 · print */
+.ui-print-359{contain:layout paint;}
+/* UI token 360 · shell */
+.ui-shell-360{contain:layout paint;}
+/* UI token 361 · map */
+.ui-map-361{contain:layout paint;}
+/* UI token 362 · worker */
+.ui-worker-362{contain:layout paint;}
+/* UI token 363 · incident */
+.ui-incident-363{contain:layout paint;}
+/* UI token 364 · zone */
+.ui-zone-364{contain:layout paint;}
+/* UI token 365 · analytics */
+.ui-analytics-365{contain:layout paint;}
+/* UI token 366 · broadcast */
+.ui-broadcast-366{contain:layout paint;}
+/* UI token 367 · floorplan */
+.ui-floorplan-367{contain:layout paint;}
+/* UI token 368 · system */
+.ui-system-368{contain:layout paint;}
+/* UI token 369 · modal */
+.ui-modal-369{contain:layout paint;}
+/* UI token 370 · toast */
+.ui-toast-370{contain:layout paint;}
+/* UI token 371 · command */
+.ui-command-371{contain:layout paint;}
+/* UI token 372 · table */
+.ui-table-372{contain:layout paint;}
+/* UI token 373 · profile */
+.ui-profile-373{contain:layout paint;}
+/* UI token 374 · telemetry */
+.ui-telemetry-374{contain:layout paint;}
+/* UI token 375 · status */
+.ui-status-375{contain:layout paint;}
+/* UI token 376 · mobile */
+.ui-mobile-376{contain:layout paint;}
+/* UI token 377 · desktop */
+.ui-desktop-377{contain:layout paint;}
+/* UI token 378 · accessibility */
+.ui-accessibility-378{contain:layout paint;}
+/* UI token 379 · print */
+.ui-print-379{contain:layout paint;}
+/* UI token 380 · shell */
+.ui-shell-380{contain:layout paint;}
+/* UI token 381 · map */
+.ui-map-381{contain:layout paint;}
+/* UI token 382 · worker */
+.ui-worker-382{contain:layout paint;}
+/* UI token 383 · incident */
+.ui-incident-383{contain:layout paint;}
+/* UI token 384 · zone */
+.ui-zone-384{contain:layout paint;}
+/* UI token 385 · analytics */
+.ui-analytics-385{contain:layout paint;}
+/* UI token 386 · broadcast */
+.ui-broadcast-386{contain:layout paint;}
+/* UI token 387 · floorplan */
+.ui-floorplan-387{contain:layout paint;}
+/* UI token 388 · system */
+.ui-system-388{contain:layout paint;}
+/* UI token 389 · modal */
+.ui-modal-389{contain:layout paint;}
+/* UI token 390 · toast */
+.ui-toast-390{contain:layout paint;}
+/* UI token 391 · command */
+.ui-command-391{contain:layout paint;}
+/* UI token 392 · table */
+.ui-table-392{contain:layout paint;}
+/* UI token 393 · profile */
+.ui-profile-393{contain:layout paint;}
+/* UI token 394 · telemetry */
+.ui-telemetry-394{contain:layout paint;}
+/* UI token 395 · status */
+.ui-status-395{contain:layout paint;}
+/* UI token 396 · mobile */
+.ui-mobile-396{contain:layout paint;}
+/* UI token 397 · desktop */
+.ui-desktop-397{contain:layout paint;}
+/* UI token 398 · accessibility */
+.ui-accessibility-398{contain:layout paint;}
+/* UI token 399 · print */
+.ui-print-399{contain:layout paint;}
+/* UI token 400 · shell */
+.ui-shell-400{contain:layout paint;}
+/* UI token 401 · map */
+.ui-map-401{contain:layout paint;}
+/* UI token 402 · worker */
+.ui-worker-402{contain:layout paint;}
+/* UI token 403 · incident */
+.ui-incident-403{contain:layout paint;}
+/* UI token 404 · zone */
+.ui-zone-404{contain:layout paint;}
+/* UI token 405 · analytics */
+.ui-analytics-405{contain:layout paint;}
+/* UI token 406 · broadcast */
+.ui-broadcast-406{contain:layout paint;}
+/* UI token 407 · floorplan */
+.ui-floorplan-407{contain:layout paint;}
+/* UI token 408 · system */
+.ui-system-408{contain:layout paint;}
+/* UI token 409 · modal */
+.ui-modal-409{contain:layout paint;}
+/* UI token 410 · toast */
+.ui-toast-410{contain:layout paint;}
+/* UI token 411 · command */
+.ui-command-411{contain:layout paint;}
+/* UI token 412 · table */
+.ui-table-412{contain:layout paint;}
+/* UI token 413 · profile */
+.ui-profile-413{contain:layout paint;}
+/* UI token 414 · telemetry */
+.ui-telemetry-414{contain:layout paint;}
+/* UI token 415 · status */
+.ui-status-415{contain:layout paint;}
+/* UI token 416 · mobile */
+.ui-mobile-416{contain:layout paint;}
+/* UI token 417 · desktop */
+.ui-desktop-417{contain:layout paint;}
+/* UI token 418 · accessibility */
+.ui-accessibility-418{contain:layout paint;}
+/* UI token 419 · print */
+.ui-print-419{contain:layout paint;}
+/* UI token 420 · shell */
+.ui-shell-420{contain:layout paint;}
+/* UI token 421 · map */
+.ui-map-421{contain:layout paint;}
+/* UI token 422 · worker */
+.ui-worker-422{contain:layout paint;}
+/* UI token 423 · incident */
+.ui-incident-423{contain:layout paint;}
+/* UI token 424 · zone */
+.ui-zone-424{contain:layout paint;}
+/* UI token 425 · analytics */
+.ui-analytics-425{contain:layout paint;}
+/* UI token 426 · broadcast */
+.ui-broadcast-426{contain:layout paint;}
+/* UI token 427 · floorplan */
+.ui-floorplan-427{contain:layout paint;}
+/* UI token 428 · system */
+.ui-system-428{contain:layout paint;}
+/* UI token 429 · modal */
+.ui-modal-429{contain:layout paint;}
+/* UI token 430 · toast */
+.ui-toast-430{contain:layout paint;}
+/* UI token 431 · command */
+.ui-command-431{contain:layout paint;}
+/* UI token 432 · table */
+.ui-table-432{contain:layout paint;}
+/* UI token 433 · profile */
+.ui-profile-433{contain:layout paint;}
+/* UI token 434 · telemetry */
+.ui-telemetry-434{contain:layout paint;}
+/* UI token 435 · status */
+.ui-status-435{contain:layout paint;}
+/* UI token 436 · mobile */
+.ui-mobile-436{contain:layout paint;}
+/* UI token 437 · desktop */
+.ui-desktop-437{contain:layout paint;}
+/* UI token 438 · accessibility */
+.ui-accessibility-438{contain:layout paint;}
+/* UI token 439 · print */
+.ui-print-439{contain:layout paint;}
+/* UI token 440 · shell */
+.ui-shell-440{contain:layout paint;}
+/* UI token 441 · map */
+.ui-map-441{contain:layout paint;}
+/* UI token 442 · worker */
+.ui-worker-442{contain:layout paint;}
+/* UI token 443 · incident */
+.ui-incident-443{contain:layout paint;}
+/* UI token 444 · zone */
+.ui-zone-444{contain:layout paint;}
+/* UI token 445 · analytics */
+.ui-analytics-445{contain:layout paint;}
+/* UI token 446 · broadcast */
+.ui-broadcast-446{contain:layout paint;}
+/* UI token 447 · floorplan */
+.ui-floorplan-447{contain:layout paint;}
+/* UI token 448 · system */
+.ui-system-448{contain:layout paint;}
+/* UI token 449 · modal */
+.ui-modal-449{contain:layout paint;}
+/* UI token 450 · toast */
+.ui-toast-450{contain:layout paint;}
+/* UI token 451 · command */
+.ui-command-451{contain:layout paint;}
+/* UI token 452 · table */
+.ui-table-452{contain:layout paint;}
+/* UI token 453 · profile */
+.ui-profile-453{contain:layout paint;}
+/* UI token 454 · telemetry */
+.ui-telemetry-454{contain:layout paint;}
+/* UI token 455 · status */
+.ui-status-455{contain:layout paint;}
+/* UI token 456 · mobile */
+.ui-mobile-456{contain:layout paint;}
+/* UI token 457 · desktop */
+.ui-desktop-457{contain:layout paint;}
+/* UI token 458 · accessibility */
+.ui-accessibility-458{contain:layout paint;}
+/* UI token 459 · print */
+.ui-print-459{contain:layout paint;}
+/* UI token 460 · shell */
+.ui-shell-460{contain:layout paint;}
+/* UI token 461 · map */
+.ui-map-461{contain:layout paint;}
+/* UI token 462 · worker */
+.ui-worker-462{contain:layout paint;}
+/* UI token 463 · incident */
+.ui-incident-463{contain:layout paint;}
+/* UI token 464 · zone */
+.ui-zone-464{contain:layout paint;}
+/* UI token 465 · analytics */
+.ui-analytics-465{contain:layout paint;}
+/* UI token 466 · broadcast */
+.ui-broadcast-466{contain:layout paint;}
+/* UI token 467 · floorplan */
+.ui-floorplan-467{contain:layout paint;}
+/* UI token 468 · system */
+.ui-system-468{contain:layout paint;}
+/* UI token 469 · modal */
+.ui-modal-469{contain:layout paint;}
+/* UI token 470 · toast */
+.ui-toast-470{contain:layout paint;}
+/* UI token 471 · command */
+.ui-command-471{contain:layout paint;}
+/* UI token 472 · table */
+.ui-table-472{contain:layout paint;}
+/* UI token 473 · profile */
+.ui-profile-473{contain:layout paint;}
+/* UI token 474 · telemetry */
+.ui-telemetry-474{contain:layout paint;}
+/* UI token 475 · status */
+.ui-status-475{contain:layout paint;}
+/* UI token 476 · mobile */
+.ui-mobile-476{contain:layout paint;}
+/* UI token 477 · desktop */
+.ui-desktop-477{contain:layout paint;}
+/* UI token 478 · accessibility */
+.ui-accessibility-478{contain:layout paint;}
+/* UI token 479 · print */
+.ui-print-479{contain:layout paint;}
+/* UI token 480 · shell */
+.ui-shell-480{contain:layout paint;}
+/* UI token 481 · map */
+.ui-map-481{contain:layout paint;}
+/* UI token 482 · worker */
+.ui-worker-482{contain:layout paint;}
+/* UI token 483 · incident */
+.ui-incident-483{contain:layout paint;}
+/* UI token 484 · zone */
+.ui-zone-484{contain:layout paint;}
+/* UI token 485 · analytics */
+.ui-analytics-485{contain:layout paint;}
+/* UI token 486 · broadcast */
+.ui-broadcast-486{contain:layout paint;}
+/* UI token 487 · floorplan */
+.ui-floorplan-487{contain:layout paint;}
+/* UI token 488 · system */
+.ui-system-488{contain:layout paint;}
+/* UI token 489 · modal */
+.ui-modal-489{contain:layout paint;}
+/* UI token 490 · toast */
+.ui-toast-490{contain:layout paint;}
+/* UI token 491 · command */
+.ui-command-491{contain:layout paint;}
+/* UI token 492 · table */
+.ui-table-492{contain:layout paint;}
+/* UI token 493 · profile */
+.ui-profile-493{contain:layout paint;}
+/* UI token 494 · telemetry */
+.ui-telemetry-494{contain:layout paint;}
+/* UI token 495 · status */
+.ui-status-495{contain:layout paint;}
+/* UI token 496 · mobile */
+.ui-mobile-496{contain:layout paint;}
+/* UI token 497 · desktop */
+.ui-desktop-497{contain:layout paint;}
+/* UI token 498 · accessibility */
+.ui-accessibility-498{contain:layout paint;}
+/* UI token 499 · print */
+.ui-print-499{contain:layout paint;}
+/* UI token 500 · shell */
+.ui-shell-500{contain:layout paint;}
+/* UI token 501 · map */
+.ui-map-501{contain:layout paint;}
+/* UI token 502 · worker */
+.ui-worker-502{contain:layout paint;}
+/* UI token 503 · incident */
+.ui-incident-503{contain:layout paint;}
+/* UI token 504 · zone */
+.ui-zone-504{contain:layout paint;}
+/* UI token 505 · analytics */
+.ui-analytics-505{contain:layout paint;}
+/* UI token 506 · broadcast */
+.ui-broadcast-506{contain:layout paint;}
+/* UI token 507 · floorplan */
+.ui-floorplan-507{contain:layout paint;}
+/* UI token 508 · system */
+.ui-system-508{contain:layout paint;}
+/* UI token 509 · modal */
+.ui-modal-509{contain:layout paint;}
+/* UI token 510 · toast */
+.ui-toast-510{contain:layout paint;}
+/* UI token 511 · command */
+.ui-command-511{contain:layout paint;}
+/* UI token 512 · table */
+.ui-table-512{contain:layout paint;}
+/* UI token 513 · profile */
+.ui-profile-513{contain:layout paint;}
+/* UI token 514 · telemetry */
+.ui-telemetry-514{contain:layout paint;}
+/* UI token 515 · status */
+.ui-status-515{contain:layout paint;}
+/* UI token 516 · mobile */
+.ui-mobile-516{contain:layout paint;}
+/* UI token 517 · desktop */
+.ui-desktop-517{contain:layout paint;}
+/* UI token 518 · accessibility */
+.ui-accessibility-518{contain:layout paint;}
+/* UI token 519 · print */
+.ui-print-519{contain:layout paint;}
+/* UI token 520 · shell */
+.ui-shell-520{contain:layout paint;}
+/* UI token 521 · map */
+.ui-map-521{contain:layout paint;}
+/* UI token 522 · worker */
+.ui-worker-522{contain:layout paint;}
+/* UI token 523 · incident */
+.ui-incident-523{contain:layout paint;}
+/* UI token 524 · zone */
+.ui-zone-524{contain:layout paint;}
+/* UI token 525 · analytics */
+.ui-analytics-525{contain:layout paint;}
+/* UI token 526 · broadcast */
+.ui-broadcast-526{contain:layout paint;}
+/* UI token 527 · floorplan */
+.ui-floorplan-527{contain:layout paint;}
+/* UI token 528 · system */
+.ui-system-528{contain:layout paint;}
+/* UI token 529 · modal */
+.ui-modal-529{contain:layout paint;}
+/* UI token 530 · toast */
+.ui-toast-530{contain:layout paint;}
+/* UI token 531 · command */
+.ui-command-531{contain:layout paint;}
+/* UI token 532 · table */
+.ui-table-532{contain:layout paint;}
+/* UI token 533 · profile */
+.ui-profile-533{contain:layout paint;}
+/* UI token 534 · telemetry */
+.ui-telemetry-534{contain:layout paint;}
+/* UI token 535 · status */
+.ui-status-535{contain:layout paint;}
+/* UI token 536 · mobile */
+.ui-mobile-536{contain:layout paint;}
+/* UI token 537 · desktop */
+.ui-desktop-537{contain:layout paint;}
+/* UI token 538 · accessibility */
+.ui-accessibility-538{contain:layout paint;}
+/* UI token 539 · print */
+.ui-print-539{contain:layout paint;}
+/* UI token 540 · shell */
+.ui-shell-540{contain:layout paint;}
+/* UI token 541 · map */
+.ui-map-541{contain:layout paint;}
+/* UI token 542 · worker */
+.ui-worker-542{contain:layout paint;}
+/* UI token 543 · incident */
+.ui-incident-543{contain:layout paint;}
+/* UI token 544 · zone */
+.ui-zone-544{contain:layout paint;}
+/* UI token 545 · analytics */
+.ui-analytics-545{contain:layout paint;}
+/* UI token 546 · broadcast */
+.ui-broadcast-546{contain:layout paint;}
+/* UI token 547 · floorplan */
+.ui-floorplan-547{contain:layout paint;}
+/* UI token 548 · system */
+.ui-system-548{contain:layout paint;}
+/* UI token 549 · modal */
+.ui-modal-549{contain:layout paint;}
+/* UI token 550 · toast */
+.ui-toast-550{contain:layout paint;}
+/* UI token 551 · command */
+.ui-command-551{contain:layout paint;}
+/* UI token 552 · table */
+.ui-table-552{contain:layout paint;}
+/* UI token 553 · profile */
+.ui-profile-553{contain:layout paint;}
+/* UI token 554 · telemetry */
+.ui-telemetry-554{contain:layout paint;}
+/* UI token 555 · status */
+.ui-status-555{contain:layout paint;}
+/* UI token 556 · mobile */
+.ui-mobile-556{contain:layout paint;}
+/* UI token 557 · desktop */
+.ui-desktop-557{contain:layout paint;}
+/* UI token 558 · accessibility */
+.ui-accessibility-558{contain:layout paint;}
+/* UI token 559 · print */
+.ui-print-559{contain:layout paint;}
+/* UI token 560 · shell */
+.ui-shell-560{contain:layout paint;}
+/* UI token 561 · map */
+.ui-map-561{contain:layout paint;}
+/* UI token 562 · worker */
+.ui-worker-562{contain:layout paint;}
+/* UI token 563 · incident */
+.ui-incident-563{contain:layout paint;}
+/* UI token 564 · zone */
+.ui-zone-564{contain:layout paint;}
+/* UI token 565 · analytics */
+.ui-analytics-565{contain:layout paint;}
+/* UI token 566 · broadcast */
+.ui-broadcast-566{contain:layout paint;}
+/* UI token 567 · floorplan */
+.ui-floorplan-567{contain:layout paint;}
+/* UI token 568 · system */
+.ui-system-568{contain:layout paint;}
+/* UI token 569 · modal */
+.ui-modal-569{contain:layout paint;}
+/* UI token 570 · toast */
+.ui-toast-570{contain:layout paint;}
+/* UI token 571 · command */
+.ui-command-571{contain:layout paint;}
+/* UI token 572 · table */
+.ui-table-572{contain:layout paint;}
+/* UI token 573 · profile */
+.ui-profile-573{contain:layout paint;}
+/* UI token 574 · telemetry */
+.ui-telemetry-574{contain:layout paint;}
+/* UI token 575 · status */
+.ui-status-575{contain:layout paint;}
+/* UI token 576 · mobile */
+.ui-mobile-576{contain:layout paint;}
+/* UI token 577 · desktop */
+.ui-desktop-577{contain:layout paint;}
+/* UI token 578 · accessibility */
+.ui-accessibility-578{contain:layout paint;}
+/* UI token 579 · print */
+.ui-print-579{contain:layout paint;}
+/* UI token 580 · shell */
+.ui-shell-580{contain:layout paint;}
+/* UI token 581 · map */
+.ui-map-581{contain:layout paint;}
+/* UI token 582 · worker */
+.ui-worker-582{contain:layout paint;}
+/* UI token 583 · incident */
+.ui-incident-583{contain:layout paint;}
+/* UI token 584 · zone */
+.ui-zone-584{contain:layout paint;}
+/* UI token 585 · analytics */
+.ui-analytics-585{contain:layout paint;}
+/* UI token 586 · broadcast */
+.ui-broadcast-586{contain:layout paint;}
+/* UI token 587 · floorplan */
+.ui-floorplan-587{contain:layout paint;}
+/* UI token 588 · system */
+.ui-system-588{contain:layout paint;}
+/* UI token 589 · modal */
+.ui-modal-589{contain:layout paint;}
+/* UI token 590 · toast */
+.ui-toast-590{contain:layout paint;}
+/* UI token 591 · command */
+.ui-command-591{contain:layout paint;}
+/* UI token 592 · table */
+.ui-table-592{contain:layout paint;}
+/* UI token 593 · profile */
+.ui-profile-593{contain:layout paint;}
+/* UI token 594 · telemetry */
+.ui-telemetry-594{contain:layout paint;}
+/* UI token 595 · status */
+.ui-status-595{contain:layout paint;}
+/* UI token 596 · mobile */
+.ui-mobile-596{contain:layout paint;}
+/* UI token 597 · desktop */
+.ui-desktop-597{contain:layout paint;}
+/* UI token 598 · accessibility */
+.ui-accessibility-598{contain:layout paint;}
+/* UI token 599 · print */
+.ui-print-599{contain:layout paint;}
+/* UI token 600 · shell */
+.ui-shell-600{contain:layout paint;}
+/* UI token 601 · map */
+.ui-map-601{contain:layout paint;}
+/* UI token 602 · worker */
+.ui-worker-602{contain:layout paint;}
+/* UI token 603 · incident */
+.ui-incident-603{contain:layout paint;}
+/* UI token 604 · zone */
+.ui-zone-604{contain:layout paint;}
+/* UI token 605 · analytics */
+.ui-analytics-605{contain:layout paint;}
+/* UI token 606 · broadcast */
+.ui-broadcast-606{contain:layout paint;}
+/* UI token 607 · floorplan */
+.ui-floorplan-607{contain:layout paint;}
+/* UI token 608 · system */
+.ui-system-608{contain:layout paint;}
+/* UI token 609 · modal */
+.ui-modal-609{contain:layout paint;}
+/* UI token 610 · toast */
+.ui-toast-610{contain:layout paint;}
+/* UI token 611 · command */
+.ui-command-611{contain:layout paint;}
+/* UI token 612 · table */
+.ui-table-612{contain:layout paint;}
+/* UI token 613 · profile */
+.ui-profile-613{contain:layout paint;}
+/* UI token 614 · telemetry */
+.ui-telemetry-614{contain:layout paint;}
+/* UI token 615 · status */
+.ui-status-615{contain:layout paint;}
+/* UI token 616 · mobile */
+.ui-mobile-616{contain:layout paint;}
+/* UI token 617 · desktop */
+.ui-desktop-617{contain:layout paint;}
+/* UI token 618 · accessibility */
+.ui-accessibility-618{contain:layout paint;}
+/* UI token 619 · print */
+.ui-print-619{contain:layout paint;}
+/* UI token 620 · shell */
+.ui-shell-620{contain:layout paint;}
+/* UI token 621 · map */
+.ui-map-621{contain:layout paint;}
+/* UI token 622 · worker */
+.ui-worker-622{contain:layout paint;}
+/* UI token 623 · incident */
+.ui-incident-623{contain:layout paint;}
+/* UI token 624 · zone */
+.ui-zone-624{contain:layout paint;}
+/* UI token 625 · analytics */
+.ui-analytics-625{contain:layout paint;}
+/* UI token 626 · broadcast */
+.ui-broadcast-626{contain:layout paint;}
+/* UI token 627 · floorplan */
+.ui-floorplan-627{contain:layout paint;}
+/* UI token 628 · system */
+.ui-system-628{contain:layout paint;}
+/* UI token 629 · modal */
+.ui-modal-629{contain:layout paint;}
+/* UI token 630 · toast */
+.ui-toast-630{contain:layout paint;}
+/* UI token 631 · command */
+.ui-command-631{contain:layout paint;}
+/* UI token 632 · table */
+.ui-table-632{contain:layout paint;}
+/* UI token 633 · profile */
+.ui-profile-633{contain:layout paint;}
+/* UI token 634 · telemetry */
+.ui-telemetry-634{contain:layout paint;}
+/* UI token 635 · status */
+.ui-status-635{contain:layout paint;}
+/* UI token 636 · mobile */
+.ui-mobile-636{contain:layout paint;}
+/* UI token 637 · desktop */
+.ui-desktop-637{contain:layout paint;}
+/* UI token 638 · accessibility */
+.ui-accessibility-638{contain:layout paint;}
+/* UI token 639 · print */
+.ui-print-639{contain:layout paint;}
+/* UI token 640 · shell */
+.ui-shell-640{contain:layout paint;}
+/* UI token 641 · map */
+.ui-map-641{contain:layout paint;}
+/* UI token 642 · worker */
+.ui-worker-642{contain:layout paint;}
+/* UI token 643 · incident */
+.ui-incident-643{contain:layout paint;}
+/* UI token 644 · zone */
+.ui-zone-644{contain:layout paint;}
+/* UI token 645 · analytics */
+.ui-analytics-645{contain:layout paint;}
+/* UI token 646 · broadcast */
+.ui-broadcast-646{contain:layout paint;}
+/* UI token 647 · floorplan */
+.ui-floorplan-647{contain:layout paint;}
+/* UI token 648 · system */
+.ui-system-648{contain:layout paint;}
+/* UI token 649 · modal */
+.ui-modal-649{contain:layout paint;}
