@@ -1,34 +1,16 @@
 {
-  "name": "altiguard-worker-monitoring",
-  "version": "0.2.0",
-  "private": true,
-  "description": "ALTIGUARD enterprise worker safety telemetry platform",
-  "type": "module",
-  "engines": {
-    "node": ">=22"
-  },
+  "name": "altiguard-kernel",
+  "version": "5.0.0",
+  "description": "Altiguard Tactical Telemetry Matrix",
+  "main": "server.js",
   "scripts": {
-    "dev": "node --watch server.js",
-    "start": "node server.js",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev --name enterprise_v2",
-    "db:push": "prisma db push",
-    "db:studio": "prisma studio",
-    "seed": "node prisma/seed.js",
-    "check": "node --check server.js && node --check public/app.js",
-    "test:geo": "node --test tests/geo.test.js"
+    "start": "node server.js"
   },
   "dependencies": {
-    "@prisma/client": "7.10.0",
-    "cors": "2.8.5",
-    "dotenv": "16.6.1",
-    "express": "5.1.0",
-    "helmet": "8.1.0",
-    "pdfkit": "0.17.2",
-    "socket.io": "4.8.1",
-    "zod": "4.1.5"
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
   },
-  "devDependencies": {
-    "prisma": "7.10.0"
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
