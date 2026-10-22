@@ -1,0 +1,30 @@
+{
+  "name": "altiguard-tactical-command",
+  "version": "7.0.0",
+  "description": "Altiguard Spatial Telemetry, Elevation Matrix & Worker Safety Command Grid — Engineered by Vaibhav Raju Kondane (COETA)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "worker-safety",
+    "spatial-telemetry",
+    "elevation-monitoring",
+    "geofencing",
+    "fall-detection",
+    "socket-io",
+    "leaflet",
+    "coeta",
+    "vaibhav-kondane"
+  ],
+  "author": "Vaibhav Raju Kondane (COETA)",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

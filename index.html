@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#050508">
+    <title>Worker Monitoring | Tactical Command v7.0 — Vaibhav Raju Kondane</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="crt-scanlines"></div>
+    <div class="ambient-glow-core"></div>
+
+    <header class="app-header">
+        <div class="brand">
+            <h1>WORKER MONITORING <span class="version-tag">KERNEL v7.0</span></h1>
+            <p>Advanced Spatial Telemetry &amp; Atmospheric Command Grid</p>
+        </div>
+        <div id="summaryBar" class="status-hud">
+            <div class="hud-item">
+                <span class="hud-label">Site Grid</span>
+                <span id="statSite" class="hud-value highlight">TEAM123</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">Command Role</span>
+                <span id="statRole" class="hud-value">ADMIN</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">Active Nodes</span>
+                <span id="statActive" class="hud-value highlight">4 Tracked</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">Grid Telemetry</span>
+                <span id="statSystem" class="hud-value status-secure">ONLINE // SECURE</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="tactical-toolbar">
+        <div class="toolbar-group">
+            <span id="connectionBadge" class="mode-pill">⚡ TELEMETRY ENGINE ACTIVE</span>
+            <button type="button" id="deployDemoBtn" class="btn btn-primary slim">🚀 Deploy Demo Squad (4 Nodes)</button>
+            <button type="button" id="autopilotToggleBtn" class="btn btn-primary slim active-mode">🤖 Live Autopilot: ON</button>
+            <button type="button" id="simFallBtn" class="btn btn-warning slim">⚠️ Simulate Kinematic Fall</button>
+            <button type="button" id="simBreachBtn" class="btn btn-outline slim">🚧 Simulate Geofence Breach</button>
+        </div>
+        <div class="toolbar-group">
+            <button type="button" id="voiceToggleBtn" class="btn btn-outline slim">🎙️ AI Voice: ON</button>
+            <button type="button" id="muteSirenBtn" class="btn btn-outline slim">🔊 Siren: ARMED</button>
+            <button type="button" id="syncWeatherBtn" class="btn btn-outline slim">🌤️ Sync Site Weather</button>
+            <button type="button" id="themeCycleBtn" class="btn btn-outline slim">🎨 Theme: CYBER</button>
+            <button type="button" id="milestoneModalBtn" class="btn btn-primary slim">🏆 GitHub Milestone Info</button>
+        </div>
+    </div>
+
+    <section class="kpi-strip">
+        <div class="kpi-card">
+            <div class="kpi-meta">
+                <span class="kpi-title">Mean Relative Elevation</span>
+                <span id="kpiAvgBpm" class="kpi-val">+3.5m</span>
+                <span class="kpi-sub">Vertical Datum Calibrated</span>
+            </div>
+            <span style="font-size:1.6rem;">📐</span>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-meta">
+                <span class="kpi-title">Geofence Radius</span>
+                <span id="kpiAvgSpo2" class="kpi-val">500m</span>
+                <span class="kpi-sub">Active Perimeter Zone</span>
+            </div>
+            <span style="font-size:1.6rem;">📡</span>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-meta">
+                <span class="kpi-title">Peak Structural Elevation</span>
+                <span id="kpiPeakAlt" class="kpi-val">+10.5m</span>
+                <span class="kpi-sub">Floor Lvl +3 Active</span>
+            </div>
+            <span style="font-size:1.6rem;">🏗️</span>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-meta">
+                <span class="kpi-title">Perimeter Compliance</span>
+                <span id="kpiSafetyScore" class="kpi-val">100%</span>
+                <span id="kpiSafetySub" class="kpi-sub">All Nodes Within Zone</span>
+            </div>
+            <span style="font-size:1.6rem;">🛡️</span>
+        </div>
+    </section>
+
+    <main class="dashboard-grid">
+        <section class="panel" id="panelAuth">
+            <div class="panel-header">
+                <div class="panel-title-wrap">
+                    <span class="step-badge">01</span>
+                    <h2>Admin Command &amp; Connect</h2>
+                </div>
+            </div>
+            <div class="control-row">
+                <input type="text" id="groupCodeInput" value="TEAM123" placeholder="Enter Site Code (e.g. TEAM123)" autocomplete="off">
+            </div>
+            <div class="button-split">
+                <button type="button" id="createGroupBtn" class="btn btn-primary"><span class="icon">👑</span> Create / Command as Admin</button>
+                <button type="button" id="joinGroupActionBtn" class="btn btn-outline"><span class="icon">👷</span> Join as Field Worker</button>
+            </div>
+            <p style="font-size: 0.73rem; color: var(--text-muted); font-family: var(--font-mono); margin-top: 6px;">
+                Hybrid Mesh Active: Automatically connects to Node.js Socket.IO backend or runs serverless on GitHub Pages with multi-tab BroadcastChannel sync.
+            </p>
+        </section>
+
+        <section class="panel" id="panelInput">
+            <div class="panel-header">
+                <div class="panel-title-wrap">
+                    <span class="step-badge">02</span>
+                    <h2>Node Identity &amp; Sensor Link</h2>
+                </div>
+            </div>
+            <form id="addForm">
+                <div class="coord-split">
+                    <div class="input-group" style="flex:1;">
+                        <label for="nameInput">Operator Name</label>
+                        <input type="text" id="nameInput" placeholder="e.g. Vaibhav Kondane" required autocomplete="off">
+                    </div>
+                    <div class="input-group" style="flex:1;">
+                        <label for="designationInput">Designation / Role</label>
+                        <input type="text" id="designationInput" placeholder="e.g. Lead Structural Eng" required autocomplete="off">
+                    </div>
+                </div>
+                <div class="sensor-controls">
+                    <button type="button" id="captureBtn" class="btn btn-sensor">📍 Auto-Fetch GPS &amp; Altitude</button>
+                    <button type="button" id="manualToggle" class="btn btn-text">⚙️ Toggle Manual Coordinates</button>
+                </div>
+                <div id="gpsReadout" class="gps-readout" hidden></div>
+                <div id="manualFields" class="manual-override" hidden>
+                    <label>Manual Sensor Override (Defaults to Akola Site Grid if blank)</label>
+                    <input type="number" id="manualHeight" step="0.1" value="7.0" placeholder="Elevation Z-Axis (m)" style="margin-bottom: 10px;">
+                    <div class="coord-split">
+                        <input type="number" id="manualLat" step="0.000001" value="20.7002" placeholder="Latitude (X)">
+                        <input type="number" id="manualLon" step="0.000001" value="77.0082" placeholder="Longitude (Y)">
+                    </div>
+                </div>
+                <button type="submit" id="addBtn" class="btn btn-submit">+ Inject Operator into Grid</button>
+            </form>
+        </section>
+
+        <section class="panel panel-large" id="panelWeather">
+            <div class="panel-header">
+                <div class="panel-title-wrap">
+                    <span class="step-badge">03</span>
+                    <h2>Live Atmospheric Telemetry</h2>
+                </div>
+                <div class="panel-actions">
+                    <span id="weatherCoordsBadge" class="mode-pill">20.7002°N, 77.0082°E</span>
+                </div>
+            </div>
+            <div id="weatherWidget" class="weather-grid">
+                <div class="weather-animation-box" id="weatherIconBox">
+                    <div class="anim-sun"></div>
+                </div>
+                <div class="weather-data-box">
+                    <div class="w-stat w-stat-wide">
+                        <span class="w-label">Atmospheric Condition</span>
+                        <strong id="wCondition" class="condition-text">Syncing Sky Telemetry...</strong>
+                    </div>
+                    <div class="w-stat">
+                        <span class="w-label">Ambient Temp</span>
+                        <strong id="wTemp">31.4°C</strong>
+                    </div>
+                    <div class="w-stat">
+                        <span class="w-label">Feels Like</span>
+                        <strong id="wFeels">33.1°C</strong>
+                    </div>
+                    <div class="w-stat">
+                        <span class="w-label">Humidity</span>
+                        <strong id="wHum">44%</strong>
+                    </div>
+                    <div class="w-stat">
+                        <span class="w-label">Wind Speed</span>
+                        <strong id="wWind">11.2 km/h</strong>
+                    </div>
+                    <div class="w-stat">
+                        <span class="w-label">Surface Pressure</span>
+                        <strong id="wPress">1009 hPa</strong>
+                    </div>
+                    <div class="w-stat">
+                        <span class="w-label">European AQI</span>
+                        <strong id="wAqi" class="aqi-badge aqi-good">34 GOOD</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel panel-large" id="panelRoster">
+            <div class="panel-header">
+                <div class="panel-title-wrap">
+                    <span class="step-badge">04</span>
+                    <h2>Active Personnel Grid</h2>
+                </div>
+                <div class="panel-actions">
+                    <input type="text" id="rosterFilterInput" placeholder="Filter by name or role..." style="padding: 6px 12px; font-size: 0.75rem; width: 190px;">
+                    <button type="button" id="exportCsvBtn" class="btn btn-outline slim">📊 Export CSV</button>
+                </div>
+            </div>
+            <div id="emptyHint" class="empty-state">
+                <div class="spinner"></div>
+                <p>AWAITING HARDWARE UPLINK OR DEMO SQUAD DEPLOYMENT...</p>
+            </div>
+            <ul id="rosterList" class="roster-list"></ul>
+        </section>
+
+        <section class="panel panel-hero" id="panelGraph">
+            <div class="panel-header">
+                <div class="panel-title-wrap">
+                    <span class="step-badge">05</span>
+                    <h2>Spatial Elevation Matrix &amp; 3D Isometric Digital Twin</h2>
+                </div>
+                <div class="panel-actions">
+                    <button type="button" id="calibrateZeroToAdminBtn" class="btn btn-outline slim">⚓ Snap Datum Zero to Admin</button>
+                </div>
+            </div>
+            <div class="elevation-split-grid">
+                <div class="svg-container-hero">
+                    <svg id="graphSvg" preserveAspectRatio="xMidYMid meet"></svg>
+                    <div class="map-overlay-corners"></div>
+                </div>
+                <div class="svg-container-hero">
+                    <svg id="isoTowerSvg" preserveAspectRatio="xMidYMid meet"></svg>
+                    <div class="map-overlay-corners"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel panel-hero" id="panelMap">
+            <div class="panel-header">
+                <div class="panel-title-wrap">
+                    <span class="step-badge">06</span>
+                    <h2>Geographic Topography &amp; Perimeter</h2>
+                </div>
+                <div class="panel-actions">
+                    <button type="button" id="fitMapBtn" class="btn btn-outline slim">🎯 Fit Perimeter</button>
+                    <button type="button" id="scanHospitalsBtn" class="btn btn-outline slim">🏥 Scan Emergency Hospitals</button>
+                </div>
+            </div>
+            <div class="map-container-hero">
+                <div id="map"></div>
+                <div class="map-overlay-corners"></div>
+            </div>
+        </section>
+
+        <section class="panel panel-hero" id="panelTelemetry" style="min-height: 340px;">
+            <div class="panel-header">
+                <div class="panel-title-wrap">
+                    <span class="step-badge">07</span>
+                    <h2>Real-Time Multi-Node Elevation Waveform (Z-Axis History)</h2>
+                </div>
+                <div class="panel-actions">
+                    <span class="mode-pill">LIVE Z-AXIS OSCILLOSCOPE</span>
+                </div>
+            </div>
+            <div class="telemetry-canvas-wrap">
+                <canvas id="telemetryCanvas"></canvas>
+            </div>
+        </section>
+
+        <section class="panel" id="panelConfig">
+            <div class="panel-header">
+                <div class="panel-title-wrap">
+                    <span class="step-badge">08</span>
+                    <h2>Physics &amp; Perimeter Calibration</h2>
+                </div>
+            </div>
+            <div class="config-grid">
+                <div class="input-group">
+                    <label for="ntfyTopicInput">Secret Alert Channel (Ntfy.sh Topic)</label>
+                    <input type="text" id="ntfyTopicInput" placeholder="e.g. altiguard-team-xyz" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="geofenceRadiusInput">Geofence Perimeter Radius (m)</label>
+                    <input type="number" id="geofenceRadiusInput" step="10" value="500">
+                </div>
+                <div class="input-group">
+                    <label for="referenceInput">Structural Datum (Zero Point m)</label>
+                    <div class="flex-row" style="margin-bottom:0;">
+                        <input type="number" id="referenceInput" step="0.1" value="0">
+                        <button type="button" id="setRefBtn" class="btn btn-outline slim">Set Zero</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="floorInput">Floor Height Multiplier (m)</label>
+                    <input type="number" id="floorInput" step="0.1" value="3.5">
+                </div>
+                <div class="input-group">
+                    <label for="limitInput">Safe Envelope Tolerance (± m)</label>
+                    <input type="number" id="limitInput" step="0.5" value="2.0">
+                </div>
+                <div class="input-group">
+                    <label for="dropInput">Kinematic Drop Limit (m)</label>
+                    <input type="number" id="dropInput" step="0.1" value="1.5">
+                </div>
+                <div class="input-group">
+                    <label for="windowInput">Drop Window (seconds)</label>
+                    <input type="number" id="windowInput" step="1" value="4">
+                </div>
+            </div>
+            <button type="button" id="testAlertBtn" class="btn btn-warning full-width mt-10">⚠️ Broadcast Diagnostic Test Siren</button>
+        </section>
+
+        <section class="panel" id="panelLogs">
+            <div class="panel-header">
+                <div class="panel-title-wrap">
+                    <span class="step-badge">09</span>
+                    <h2>Command Incident Ledger</h2>
+                </div>
+                <div class="panel-actions">
+                    <button type="button" id="clearLogsBtn" class="btn btn-outline slim">🧹 Clear</button>
+                </div>
+            </div>
+            <ul id="logList" class="console-logs"></ul>
+            <button type="button" id="downloadLogsBtn" class="btn btn-outline full-width mt-10">📥 Download Incident Report (.txt)</button>
+        </section>
+    </main>
+
+    <!-- GitHub Milestone & System Architecture Modal -->
+    <div id="milestoneModal" class="modal-backdrop" hidden>
+        <div class="modal-card">
+            <div class="panel-header" style="margin-bottom:14px;">
+                <div class="panel-title-wrap">
+                    <span class="step-badge">MILESTONE</span>
+                    <h2>Altiguard Kernel v7.0 // Architecture &amp; Credits</h2>
+                </div>
+                <button type="button" id="closeMilestoneModalBtn" class="btn btn-outline slim">✕ Close</button>
+            </div>
+            <p style="font-size:0.88rem; color:#d1d5db; margin-bottom:12px;">
+                <strong>COETA Worker Monitoring &amp; Tactical Command</strong> is a real-time industrial IoT spatial elevation, geofence perimeter, and kinematic fall-detection platform engineered by <strong>Vaibhav Raju Kondane</strong>.
+            </p>
+            <div class="modal-badge-row">
+                <span class="tech-pill">Node.js &amp; Express</span>
+                <span class="tech-pill">Socket.IO Real-Time Mesh</span>
+                <span class="tech-pill">3D Isometric Digital Twin</span>
+                <span class="tech-pill">Leaflet GIS &amp; Overpass Radar</span>
+                <span class="tech-pill">Open-Meteo Weather &amp; AQI</span>
+                <span class="tech-pill">Web Audio &amp; AI Speech Synthesis</span>
+            </div>
+            <div class="arch-grid">
+                <div class="arch-box">
+                    <h4>1. Spatial Z-Axis Matrix</h4>
+                    <p>Tracks worker floor levels relative to a calibrated Structural Datum Zero with 2D stick-figure telemetry and a 3D isometric building twin.</p>
+                </div>
+                <div class="arch-box">
+                    <h4>2. Kinematic Fall Physics</h4>
+                    <p>Monitors sliding time-window vertical displacement (ΔZ/Δt) to detect freefalls and trigger instant acoustic, voice, and Ntfy.sh push alerts.</p>
+                </div>
+                <div class="arch-box">
+                    <h4>3. Geofence Perimeter</h4>
+                    <p>Computes Haversine perimeter distance from Command Admin and queries OpenStreetMap Overpass API for nearby emergency response centers.</p>
+                </div>
+                <div class="arch-box">
+                    <h4>4. Hybrid GitHub Deployment</h4>
+                    <p>Runs both as a full-stack Node.js + Socket.IO server AND serverless on GitHub Pages with autonomous elevation patrol simulation.</p>
+                </div>
+            </div>
+            <div style="background:#05070c; border:1px solid rgba(0,229,255,0.2); padding:12px 16px; border-radius:8px; font-family:var(--font-mono); font-size:0.75rem; color:#94a3b8;">
+                <strong style="color:var(--brand-primary);">GITHUB DEPLOYMENT COMMANDS:</strong><br>
+                $ git init &amp;&amp; git add . &amp;&amp; git commit -m "feat: release Altiguard Kernel v7.0"<br>
+                $ npm install &amp;&amp; npm start &nbsp;# Launches Full-Stack Server on port 3000
+            </div>
+        </div>
+    </div>
+
+    <div class="fab-container">
+        <button type="button" id="sosTriggerBtn" class="fab-btn fab-sos">
+            <span class="pulse-ring"></span>
+            🚨 INITIATE SOS
+        </button>
+    </div>
+
+    <div id="alertBanner" class="toast-banner" hidden></div>
+    <div id="devCredit" class="watermark">COETA WORKER MONITORING // ENGINEERED BY VAIBHAV RAJU KONDANE</div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="script.js"></script>
+</body>
+</html>
